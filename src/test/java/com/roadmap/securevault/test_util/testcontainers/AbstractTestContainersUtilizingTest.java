@@ -1,9 +1,5 @@
-package com.roadmap.securevault.test_util;
+package com.roadmap.securevault.test_util.testcontainers;
 
-import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
-import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
-import org.springframework.boot.testcontainers.properties.TestcontainersPropertySourceAutoConfiguration;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnectionAutoConfiguration;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -13,18 +9,11 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
-/** Base {@link DataJpaTest} with a shared PostgreSQL Testcontainer and explicit datasource properties. */
+/** Base class for all tests that utilize Testcontainers **/
 @Testcontainers(disabledWithoutDocker = true)
 @ActiveProfiles("testcontainers")
-@DataJpaTest(
-        excludeAutoConfiguration = {
-                TestcontainersPropertySourceAutoConfiguration.class,
-                ServiceConnectionAutoConfiguration.class
-        })
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public abstract class AbstractPostgresDataJpaTest {
-
+public abstract class AbstractTestContainersUtilizingTest {
     private static final DockerImageName POSTGRES_IMAGE =
             DockerImageName.parse("postgres:18.3").asCompatibleSubstituteFor("postgres");
 
