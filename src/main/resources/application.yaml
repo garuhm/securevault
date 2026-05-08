@@ -1,3 +1,18 @@
 spring:
   application:
     name: securevault
+
+  datasource:
+    url: jdbc:postgresql://localhost:5000/securevault
+    username: securevault
+    password: securevault
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+  security:
+    jwt:
+      secret: vTpTSehgudwctoSkCRB3HCdrW8NJBRA1s02pf7TXh9E
+      access-token-expiration: 900000      # 15 minutes in ms
+      refresh-token-expiration: 604800000  # 7 days in ms

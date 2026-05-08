@@ -12,9 +12,9 @@ import org.springframework.security.core.GrantedAuthority;
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class Role implements GrantedAuthority {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
-    private String id;
+    private int id;
 
     @Column(unique = true, nullable = false)
     @Enumerated(EnumType.STRING)
