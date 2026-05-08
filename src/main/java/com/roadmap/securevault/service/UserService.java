@@ -1,6 +1,6 @@
 package com.roadmap.securevault.service;
 
-import com.roadmap.securevault.dto.CreateUserRequest;
+import com.roadmap.securevault.dto.RegisterRequest;
 import com.roadmap.securevault.entity.User;
 import com.roadmap.securevault.entity.enums.RoleName;
 import com.roadmap.securevault.exception.CredentialsTakenException;
@@ -29,7 +29,7 @@ public class UserService implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException("User with the username" + username + "not found"));
     }
 
-    public void register(CreateUserRequest request) {
+    public void register(RegisterRequest request) {
         if(userRepository.existsByUsername(request.username())) {
             throw new CredentialsTakenException("Username already exists");
         }
