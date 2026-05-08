@@ -4,7 +4,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 
-public record CreateUserRequest(
+public record RegisterRequest(
         @NotBlank(message = "Username cannot be blank")
         String username,
         @NotBlank(message = "Email cannot be blank")

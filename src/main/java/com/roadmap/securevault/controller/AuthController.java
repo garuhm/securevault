@@ -1,6 +1,6 @@
 package com.roadmap.securevault.controller;
 
-import com.roadmap.securevault.dto.CreateUserRequest;
+import com.roadmap.securevault.dto.RegisterRequest;
 import com.roadmap.securevault.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +18,7 @@ public class AuthController {
     private final UserService userService;
 
     @PostMapping("/register")
-    public ResponseEntity<Void> register(@Valid @RequestBody CreateUserRequest request) {
+    public ResponseEntity<Void> register(@Valid @RequestBody RegisterRequest request) {
         userService.register(request);
         return ResponseEntity.ok().build();
     }
