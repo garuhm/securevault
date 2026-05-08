@@ -3,7 +3,7 @@ package com.roadmap.securevault.repo;
 import com.roadmap.securevault.entity.Role;
 import com.roadmap.securevault.entity.User;
 import com.roadmap.securevault.entity.enums.RoleName;
-import com.roadmap.securevault.test_util.AbstractPostgresIntegrationTest;
+import com.roadmap.securevault.test_util.AbstractPostgresDataJpaTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,14 +14,14 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
-class UserAndRoleRepositoryTest extends AbstractPostgresIntegrationTest {
+class UserAndRoleRepositoryIT extends AbstractPostgresDataJpaTest {
     @Autowired
     private RoleRepository roleRepository;
     @Autowired
     private UserRepository userRepository;
 
     @Test
-    @DisplayName("New user with a role has one linked row in user_roles")
+    @DisplayName("New user with a role has one linked row in user_roles; successful")
     void testNewUserWithRoleHasOneLinkedRow() {
         User user = createUserWithUserRole("gabe", "email@email.com", "gabe");
 
@@ -36,7 +36,7 @@ class UserAndRoleRepositoryTest extends AbstractPostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("New user with one or more null field is rejected")
+    @DisplayName("New user with one or more null field is rejected; exception thrown")
     void testNewUserWithNullFieldIsRejected() {
         assertThrows(DataIntegrityViolationException.class, () -> userRepository.saveAndFlush(
                 User.builder()
@@ -47,7 +47,7 @@ class UserAndRoleRepositoryTest extends AbstractPostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("New user with duplicate email is rejected")
+    @DisplayName("New user with duplicate email is rejected; exception thrown")
     void testNewUserWithDuplicateEmailIsRejected() {
         userRepository.saveAndFlush(
                 User.builder()
@@ -65,7 +65,7 @@ class UserAndRoleRepositoryTest extends AbstractPostgresIntegrationTest {
     }
 
     @Test
-    @DisplayName("New user with duplicate username is rejected")
+    @DisplayName("New user with duplicate username is rejected; exception thrown")
     void testNewUserWithDuplicateUsernameIsRejected() {
         userRepository.saveAndFlush(User.builder()
                 .username("duplicateUser")

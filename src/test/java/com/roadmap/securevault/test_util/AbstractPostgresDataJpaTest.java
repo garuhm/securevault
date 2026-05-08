@@ -23,7 +23,7 @@ import org.testcontainers.utility.DockerImageName;
         })
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public abstract class AbstractPostgresIntegrationTest {
+public abstract class AbstractPostgresDataJpaTest {
 
     private static final DockerImageName POSTGRES_IMAGE =
             DockerImageName.parse("postgres:18.3").asCompatibleSubstituteFor("postgres");
