@@ -4,7 +4,6 @@ import com.roadmap.securevault.config.properties.CookieProperties;
 import com.roadmap.securevault.filter.JwtFilter;
 import com.roadmap.securevault.service.AccessJwtService;
 import com.roadmap.securevault.service.CookieService;
-import com.roadmap.securevault.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

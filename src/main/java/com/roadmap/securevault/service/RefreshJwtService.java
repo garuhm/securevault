@@ -70,6 +70,7 @@ public class RefreshJwtService {
         return new JwtRotationResult(newAccessToken, generateRefreshToken(user).getId(), user);
     }
 
+    @Transactional
     public void revokeToken(UUID token) {
         refreshTokenRepository.findByIdAndRevokedFalse(token).ifPresent(refreshToken -> {
             refreshToken.setRevoked(true);
