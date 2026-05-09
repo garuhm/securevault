@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -19,13 +18,6 @@ public class RefreshJwtService {
     private final AccessJwtService accessJwtService;
     private final JwtProperties jwtProperties;
     private final RefreshTokenRepository refreshTokenRepository;
-
-    @Transactional
-    public RefreshToken findByUser(User user) {
-        return refreshTokenRepository
-                .findFirstByUserAndRevokedFalse(user)
-                .orElseGet(() -> generateRefreshToken(user));
-    }
 
     @Transactional
     public RefreshToken generateRefreshToken(User user) {

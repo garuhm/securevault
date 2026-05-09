@@ -72,7 +72,7 @@ public class UserService implements UserDetailsService {
             throw new BadCredentialsException("Invalid credentials.");
         }
 
-        RefreshToken refreshToken = refreshJwtService.findByUser(user);
+        RefreshToken refreshToken = refreshJwtService.generateRefreshToken(user);
         return new AuthenticatedResponse(
                 accessJwtService.generateAccessToken(user),
                 refreshToken.getId()
