@@ -40,7 +40,7 @@ public class UserService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return userRepository
                 .findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User with the username" + username + "not found"));
+                .orElseThrow(() -> new UsernameNotFoundException("Username or password is incorrect"));
     }
 
     @Transactional
@@ -70,12 +70,10 @@ public class UserService implements UserDetailsService {
     @Transactional
     public void login(LoginRequest credentials,
                                        HttpServletResponse response) {
-        User user = userRepository
-                .findByUsername(credentials.username())
-                .orElseThrow(() -> new BadCredentialsException("Username or password is incorrect"));
+        User user = (User) loadUserByUsername(credentials.username());
 
         if (!passwordEncoder.matches(credentials.password(), user.getPassword())) {
-            throw new BadCredentialsException("Invalid credentials.");
+            throw new BadCredentialsException("Username or password is incorrect.");
         }
 
         cookieService.addTokenCookies(
@@ -93,12 +91,12 @@ public class UserService implements UserDetailsService {
 
     @Transactional
     public void logout(HttpServletRequest request, HttpServletResponse response) {
-        User user = userRepository.findByUsername(
+        User user = (User) loadUserByUsername(
                         SecurityContextHolder
                                 .getContext()
                                 .getAuthentication()
-                                .getName())
-                        .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                                .getName());
+
         refreshJwtService.revokeToken(
                 UUID.fromString(
                         cookieService

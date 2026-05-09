@@ -1,5 +1,6 @@
 package com.roadmap.securevault.controller;
 
+import com.roadmap.securevault.dto.LoginRequest;
 import com.roadmap.securevault.dto.RegisterRequest;
 import com.roadmap.securevault.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,5 +26,26 @@ public class AuthController {
                                          HttpServletResponse response) {
         userService.register(credentials, response);
         return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<Void> login(@Valid @RequestBody LoginRequest credentials,
+                                      HttpServletResponse response) {
+        userService.login(credentials, response);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<Void> refreshToken(HttpServletRequest request,
+                                             HttpServletResponse response) {
+        userService.refreshToken(request, response);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(HttpServletRequest request,
+                                       HttpServletResponse response) {
+        userService.logout(request, response);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 }
