@@ -1,6 +1,9 @@
 package com.roadmap.securevault.service;
 
+import com.roadmap.securevault.dto.LoginRequest;
 import com.roadmap.securevault.dto.RegisterRequest;
+import com.roadmap.securevault.dto.AuthenticatedResponse;
+import com.roadmap.securevault.entity.RefreshToken;
 import com.roadmap.securevault.entity.User;
 import com.roadmap.securevault.entity.enums.RoleName;
 import com.roadmap.securevault.exception.CredentialsTakenException;
@@ -10,6 +13,7 @@ import com.roadmap.securevault.repo.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -23,6 +27,9 @@ public class UserService implements UserDetailsService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
 
+    private final AccessJwtService accessJwtService;
+    private final RefreshJwtService refreshJwtService;
+
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return userRepository
@@ -31,7 +38,7 @@ public class UserService implements UserDetailsService {
     }
 
     @Transactional
-    public void register(RegisterRequest request) {
+    public AuthenticatedResponse register(RegisterRequest request) {
         if(userRepository.existsByUsername(request.username())) {
             throw new CredentialsTakenException("Username already exists");
         }
@@ -45,6 +52,27 @@ public class UserService implements UserDetailsService {
                 .findByName(RoleName.ROLE_USER)
                 .orElseThrow(() -> new EntityNotFoundException("Role not found")));
 
-        userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        return new AuthenticatedResponse(
+                accessJwtService.generateAccessToken(savedUser),
+                refreshJwtService.generateRefreshToken(savedUser).getId()
+        );
+    }
+
+    @Transactional
+    public AuthenticatedResponse login(LoginRequest request) {
+        User user = userRepository
+                .findByUsername(request.username())
+                .orElseThrow(() -> new BadCredentialsException("Username or password is incorrect"));
+
+        if (!passwordEncoder.matches(request.password(), user.getPassword())) {
+            throw new BadCredentialsException("Invalid credentials.");
+        }
+
+        RefreshToken refreshToken = refreshJwtService.findByUser(user);
+        return new AuthenticatedResponse(
+                accessJwtService.generateAccessToken(user),
+                refreshToken.getId()
+        );
     }
 }

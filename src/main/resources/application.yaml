@@ -11,8 +11,7 @@ spring:
     hibernate:
       ddl-auto: update
 
-  security:
-    jwt:
-      secret: vTpTSehgudwctoSkCRB3HCdrW8NJBRA1s02pf7TXh9E
-      access-token-expiration: 900000      # 15 minutes in ms
-      refresh-token-expiration: 604800000  # 7 days in ms
+jwt:
+  secret: vTpTSehgudwctoSkCRB3HCdrW8NJBRA1s02pf7TXh9E
+  access-token-expiration: 900000      # 15 minutes in ms
+  refresh-token-expiration: 604800000  # 7 days in ms
