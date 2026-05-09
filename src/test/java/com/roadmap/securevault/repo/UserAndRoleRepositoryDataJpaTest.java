@@ -14,7 +14,7 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
-@DisplayName("UserAndRoleRepository Data Jpa Tests")
+@DisplayName("User And RoleRepository Data Jpa Tests")
 class UserAndRoleRepositoryDataJpaTest extends AbstractPostgresDataJpaTest {
     @Autowired
     private RoleRepository roleRepository;
