@@ -8,6 +8,7 @@ import com.roadmap.securevault.mapper.UserMapper;
 import com.roadmap.securevault.repo.RoleRepository;
 import com.roadmap.securevault.repo.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -29,6 +30,7 @@ public class UserService implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException("User with the username" + username + "not found"));
     }
 
+    @Transactional
     public void register(RegisterRequest request) {
         if(userRepository.existsByUsername(request.username())) {
             throw new CredentialsTakenException("Username already exists");

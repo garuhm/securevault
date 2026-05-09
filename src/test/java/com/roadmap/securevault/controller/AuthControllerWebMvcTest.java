@@ -5,12 +5,10 @@ import com.roadmap.securevault.dto.RegisterRequest;
 import com.roadmap.securevault.exception.CredentialsTakenException;
 import com.roadmap.securevault.exception.GlobalExceptionHandler;
 import com.roadmap.securevault.service.UserService;
-import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -24,7 +22,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(controllers = AuthController.class)
 @Import({SecurityConfig.class, GlobalExceptionHandler.class})
-public class AuthControllerWebMvcTest {
+@DisplayName("AuthController WebMvc Tests")
+class AuthControllerWebMvcTest {
     @Autowired
     private MockMvc mockMvc;
     @Autowired

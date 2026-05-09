@@ -27,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@DisplayName("UserService Unit Tests")
 class UserServiceTest {
     @Mock
     private UserRepository userRepository;
@@ -54,7 +55,7 @@ class UserServiceTest {
     }
 
     @Nested
-    @DisplayName("Register tests")
+    @DisplayName("Registration tests")
     class Register {
         private RegisterRequest request;
 

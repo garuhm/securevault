@@ -3,9 +3,12 @@ package com.roadmap.securevault.dto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 
 public record RegisterRequest(
         @NotBlank(message = "Username cannot be blank")
+        @Pattern(regexp = "^[a-zA-Z0-9_.]{4,32}$",
+                message = "Username must be between 4 and 32 characters and contain only letters, numbers, underscores, and periods")
         String username,
         @NotBlank(message = "Email cannot be blank")
         @Email(message = "Invalid email format")
