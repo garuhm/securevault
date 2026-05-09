@@ -16,9 +16,9 @@ import java.util.Date;
 public class AccessJwtService {
     private final JwtProperties jwtProperties;
 
-    public String generateAccessToken(UserDetails userDetails) {
+    public String generateAccessToken(UserDetails user) {
         return Jwts.builder()
-                .subject(userDetails.getUsername())
+                .subject(user.getUsername())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + jwtProperties.accessTokenExpiration()))
                 .signWith(jwtProperties.secretKey())
@@ -59,9 +59,9 @@ public class AccessJwtService {
         }
     }
 
-    public boolean isTokenValid(String token, UserDetails userDetails) {
+    public boolean isTokenValid(String token, UserDetails user) {
         try {
-            return extractUsername(token).equals(userDetails.getUsername());
+            return extractUsername(token).equals(user.getUsername());
         } catch (JwtException e) {
             return false;
         }

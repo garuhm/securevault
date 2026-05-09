@@ -14,11 +14,14 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -74,5 +77,25 @@ public class UserService implements UserDetailsService {
                 accessJwtService.generateAccessToken(user),
                 refreshToken.getId()
         );
+    }
+
+    @Transactional
+    public AuthenticatedResponse refreshToken(UUID id) {
+        RefreshJwtService.JwtRotationResult result = refreshJwtService.validateAndRotate(id);
+        return new AuthenticatedResponse(
+                result.accessToken(),
+                result.refreshToken()
+        );
+    }
+
+    @Transactional
+    public void logout() {
+        refreshJwtService.revokeAllTokensForUser(
+                userRepository.findByUsername(
+                        SecurityContextHolder
+                                .getContext()
+                                .getAuthentication()
+                                .getName())
+                        .get());
     }
 }
