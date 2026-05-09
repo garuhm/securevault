@@ -22,19 +22,14 @@ public class RefreshJwtService {
 
     @Transactional
     public RefreshToken findByUser(User user) {
-        Optional<RefreshToken> refreshToken = Optional.of(
-                refreshTokenRepository
-                        .findFirstByUserAndRevokedFalse(user)
-                        .orElse(
-                                generateRefreshToken(user)
-        ));
-
-        return refreshToken.get();
+        return refreshTokenRepository
+                .findFirstByUserAndRevokedFalse(user)
+                .orElseGet(() -> generateRefreshToken(user));
     }
 
     @Transactional
     public RefreshToken generateRefreshToken(User user) {
-        if(refreshTokenRepository.findByUserAndRevokedFalse(user).isEmpty()) {
+        if(!refreshTokenRepository.findByUserAndRevokedFalse(user).isEmpty()) {
             revokeAllTokensForUser(user);
         }
 
@@ -64,18 +59,15 @@ public class RefreshJwtService {
         refreshTokenRepository.saveAndFlush(existingToken);
 
         User user = existingToken.getUser();
-        UUID newRefreshToken = UUID.randomUUID();
         String newAccessToken = accessJwtService.generateAccessToken(user);
 
-        return new JwtRotationResult(newAccessToken, newRefreshToken, user);
+        return new JwtRotationResult(newAccessToken, generateRefreshToken(user).getId(), user);
     }
 
     public void revokeToken(UUID token) {
         refreshTokenRepository.findByIdAndRevokedFalse(token).ifPresent(refreshToken -> {
-            if (!refreshToken.isRevoked()) {
-                refreshToken.setRevoked(true);
-                refreshTokenRepository.saveAndFlush(refreshToken);
-            }
+            refreshToken.setRevoked(true);
+            refreshTokenRepository.saveAndFlush(refreshToken);
         });
     }
 

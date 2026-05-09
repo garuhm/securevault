@@ -40,23 +40,11 @@ public class AccessJwtService {
     }
 
     public String extractUsername(String token) {
-        try {
-            return extractAllClaims(token).getSubject();
-        } catch (ExpiredJwtException e) {
-            throw new ExpiredJwtException(e.getHeader(), e.getClaims(), "Token has expired", e);
-        } catch (JwtException e) {
-            throw new JwtException("Invalid JWT token", e);
-        }
+        return extractAllClaims(token).getSubject();
     }
 
     public Date extractExpiration(String token) {
-        try {
-            return extractAllClaims(token).getExpiration();
-        } catch (ExpiredJwtException e) {
-            throw new ExpiredJwtException(e.getHeader(), e.getClaims(), "Token has expired", e);
-        } catch (JwtException e) {
-            throw new JwtException("Invalid JWT token", e);
-        }
+        return extractAllClaims(token).getExpiration();
     }
 
     public boolean isTokenValid(String token, UserDetails user) {
