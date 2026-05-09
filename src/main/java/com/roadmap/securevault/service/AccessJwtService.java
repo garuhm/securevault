@@ -49,7 +49,8 @@ public class AccessJwtService {
 
     public boolean isTokenValid(String token, UserDetails user) {
         try {
-            return extractUsername(token).equals(user.getUsername());
+            return extractUsername(token).equals(user.getUsername())
+                    && !extractExpiration(token).before(new Date());
         } catch (JwtException e) {
             return false;
         }

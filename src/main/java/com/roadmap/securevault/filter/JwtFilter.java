@@ -1,30 +1,31 @@
 package com.roadmap.securevault.filter;
 
+import com.roadmap.securevault.config.properties.CookieProperties;
 import com.roadmap.securevault.service.AccessJwtService;
 import com.roadmap.securevault.service.CookieService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+@Component
+@RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
-    private AccessJwtService accessJwtService;
-    private UserDetailsService userDetailsService;
-    private CookieService cookieService;
-
-    public JwtFilter(AccessJwtService accessJtService, UserDetailsService userDetails) {
-        this.accessJwtService = accessJtService;
-        this.userDetailsService = userDetails;
-    }
+    private final AccessJwtService accessJwtService;
+    private final UserDetailsService userDetailsService;
+    private final CookieService cookieService;
+    private final CookieProperties cookieProperties;
 
     @Override
     protected void doFilterInternal(
@@ -33,7 +34,7 @@ public class JwtFilter extends OncePerRequestFilter {
             FilterChain filterChain)
             throws ServletException, IOException {
 
-        String token = cookieService.extractTokenFromCookie(request, "access_token");
+        String token = cookieService.extractTokenFromCookie(request, cookieProperties.accessTokenCookieName());
 
         if (token == null) {
             filterChain.doFilter(request, response);

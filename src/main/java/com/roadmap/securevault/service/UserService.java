@@ -1,5 +1,6 @@
 package com.roadmap.securevault.service;
 
+import com.roadmap.securevault.config.properties.CookieProperties;
 import com.roadmap.securevault.dto.LoginRequest;
 import com.roadmap.securevault.dto.RegisterRequest;
 import com.roadmap.securevault.entity.User;
@@ -33,6 +34,7 @@ public class UserService implements UserDetailsService {
     private final AccessJwtService accessJwtService;
     private final RefreshJwtService refreshJwtService;
     private final CookieService cookieService;
+    private final CookieProperties cookieProperties;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -90,15 +92,19 @@ public class UserService implements UserDetailsService {
     }
 
     @Transactional
-    public void logout(HttpServletResponse response) {
-        refreshJwtService.revokeAllTokensForUser(
-                userRepository.findByUsername(
+    public void logout(HttpServletRequest request, HttpServletResponse response) {
+        User user = userRepository.findByUsername(
                         SecurityContextHolder
                                 .getContext()
                                 .getAuthentication()
                                 .getName())
-                        .get()
-                );
+                        .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        refreshJwtService.revokeToken(
+                UUID.fromString(
+                        cookieService
+                                .extractTokenFromCookie(
+                                        request, cookieProperties
+                                                .refreshTokenCookieName())));
         cookieService.clearTokenCookies(response);
     }
 }

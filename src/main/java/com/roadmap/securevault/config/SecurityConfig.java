@@ -1,7 +1,9 @@
 package com.roadmap.securevault.config;
 
+import com.roadmap.securevault.config.properties.CookieProperties;
 import com.roadmap.securevault.filter.JwtFilter;
 import com.roadmap.securevault.service.AccessJwtService;
+import com.roadmap.securevault.service.CookieService;
 import com.roadmap.securevault.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -23,6 +25,8 @@ public class SecurityConfig {
     private final UserDetailsService userDetailsService;
     private final PasswordEncoder passwordEncoder;
     private final AccessJwtService accessJwtService;
+    private final CookieService cookieService;
+    private final CookieProperties cookieProperties;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -49,6 +53,6 @@ public class SecurityConfig {
 
     @Bean
     public JwtFilter jwtAuthFilter() {
-        return new JwtFilter(accessJwtService, userDetailsService);
+        return new JwtFilter(accessJwtService, userDetailsService, cookieService, cookieProperties);
     }
 }

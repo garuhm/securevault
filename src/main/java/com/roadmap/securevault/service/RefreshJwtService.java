@@ -28,10 +28,6 @@ public class RefreshJwtService {
     @Transactional
     public RefreshToken generateRefreshToken(UserDetails userDetails) {
         User user = (User) userDetails;
-        if(!refreshTokenRepository.findByUserAndRevokedFalse(user).isEmpty()) {
-            revokeAllTokensForUser(user);
-        }
-
         RefreshToken refreshToken = RefreshToken.builder()
                 .user(user)
                 .expiryDate(new Date(System.currentTimeMillis() + jwtProperties.refreshTokenExpiration()))
@@ -85,8 +81,6 @@ public class RefreshJwtService {
     public void revokeAllTokensForUser(UserDetails user) {
         refreshTokenRepository.revokeAllByUser((User) user);
     }
-
-
     public record JwtRotationResult(String accessToken, UUID refreshToken, User user) {
     }
 }
