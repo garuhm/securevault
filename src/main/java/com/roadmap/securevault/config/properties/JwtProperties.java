@@ -5,7 +5,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import javax.crypto.SecretKey;
 
-@ConfigurationProperties(prefix = "jwt")
+@ConfigurationProperties(prefix = "security.jwt")
 public record JwtProperties(
         String secret,
         long accessTokenExpiration,

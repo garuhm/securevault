@@ -1,11 +1,15 @@
 package com.roadmap.securevault.service;
 
+import com.roadmap.securevault.config.properties.CookieProperties;
 import com.roadmap.securevault.config.properties.JwtProperties;
 import com.roadmap.securevault.entity.RefreshToken;
 import com.roadmap.securevault.entity.User;
 import com.roadmap.securevault.exception.InvalidRefreshTokenException;
 import com.roadmap.securevault.repo.RefreshTokenRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.web.authentication.rememberme.InvalidCookieException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,12 +19,15 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class RefreshJwtService {
+    private final CookieService cookieService;
     private final AccessJwtService accessJwtService;
     private final JwtProperties jwtProperties;
+    private final CookieProperties cookieProperties;
     private final RefreshTokenRepository refreshTokenRepository;
 
     @Transactional
-    public RefreshToken generateRefreshToken(User user) {
+    public RefreshToken generateRefreshToken(UserDetails userDetails) {
+        User user = (User) userDetails;
         if(!refreshTokenRepository.findByUserAndRevokedFalse(user).isEmpty()) {
             revokeAllTokensForUser(user);
         }
@@ -36,8 +43,19 @@ public class RefreshJwtService {
     }
 
     @Transactional
-    public JwtRotationResult validateAndRotate(UUID id) {
-        RefreshToken existingToken = refreshTokenRepository.findById(id)
+    public JwtRotationResult validateAndRotate(HttpServletRequest request) {
+        String token = cookieService.extractTokenFromCookie(request, cookieProperties.refreshTokenCookieName());
+        if(token == null) {
+            throw new InvalidCookieException("Refresh token not found in cookie " + cookieProperties.refreshTokenCookieName() + ".");
+        }
+        UUID parsedToken;
+        try {
+            parsedToken = UUID.fromString(token);
+        } catch (IllegalArgumentException e) {
+            throw new InvalidRefreshTokenException("Invalid refresh token format in cookie " + cookieProperties.refreshTokenCookieName() + ".");
+        }
+
+        RefreshToken existingToken = refreshTokenRepository.findById(parsedToken)
                 .orElseThrow(() -> new InvalidRefreshTokenException("Refresh token not found."));
 
         if (existingToken.isRevoked()) {
@@ -64,8 +82,8 @@ public class RefreshJwtService {
     }
 
     @Transactional
-    public void revokeAllTokensForUser(User user) {
-        refreshTokenRepository.revokeAllByUser(user);
+    public void revokeAllTokensForUser(UserDetails user) {
+        refreshTokenRepository.revokeAllByUser((User) user);
     }
 
 

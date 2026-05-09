@@ -1,6 +1,7 @@
 package com.roadmap.securevault.filter;
 
 import com.roadmap.securevault.service.AccessJwtService;
+import com.roadmap.securevault.service.CookieService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -9,6 +10,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -17,6 +19,7 @@ import java.io.IOException;
 public class JwtFilter extends OncePerRequestFilter {
     private AccessJwtService accessJwtService;
     private UserDetailsService userDetailsService;
+    private CookieService cookieService;
 
     public JwtFilter(AccessJwtService accessJtService, UserDetailsService userDetails) {
         this.accessJwtService = accessJtService;
@@ -30,16 +33,12 @@ public class JwtFilter extends OncePerRequestFilter {
             FilterChain filterChain)
             throws ServletException, IOException {
 
-        String authorizationHeader = request.getHeader("Authorization");
+        String token = cookieService.extractTokenFromCookie(request, "access_token");
 
-        if (authorizationHeader == null
-                || !authorizationHeader.startsWith("Bearer ")
-                || SecurityContextHolder.getContext().getAuthentication() == null) {
+        if (token == null) {
             filterChain.doFilter(request, response);
             return;
         }
-
-        String token = authorizationHeader.substring("Bearer ".length());
 
         try {
             String username = accessJwtService.extractUsername(token);
@@ -48,7 +47,13 @@ public class JwtFilter extends OncePerRequestFilter {
                 return;
             }
 
-            UserDetails user = userDetailsService.loadUserByUsername(username);
+            UserDetails user;
+            try {
+                user = userDetailsService.loadUserByUsername(username);
+            } catch (UsernameNotFoundException ignored) {
+                filterChain.doFilter(request, response);
+                return;
+            }
             if (!accessJwtService.isTokenValid(token, user)) {
                 filterChain.doFilter(request, response);
                 return;

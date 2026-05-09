@@ -11,7 +11,12 @@ spring:
     hibernate:
       ddl-auto: update
 
-jwt:
-  secret: vTpTSehgudwctoSkCRB3HCdrW8NJBRA1s02pf7TXh9E
-  access-token-expiration: 900000      # 15 minutes in ms
-  refresh-token-expiration: 604800000  # 7 days in ms
+security:
+  jwt:
+    secret: vTpTSehgudwctoSkCRB3HCdrW8NJBRA1s02pf7TXh9E
+    access-token-expiration: 900000      # 15 minutes in ms
+    refresh-token-expiration: 604800000  # 7 days in ms
+  cookie:
+    access-token-cookie-name: securevault-access-token
+    refresh-token-cookie-name: securevault-refresh-token
+    refresh-token-cookie-path: /auth/refresh

@@ -2,8 +2,6 @@ package com.roadmap.securevault.service;
 
 import com.roadmap.securevault.dto.LoginRequest;
 import com.roadmap.securevault.dto.RegisterRequest;
-import com.roadmap.securevault.dto.AuthenticatedResponse;
-import com.roadmap.securevault.entity.RefreshToken;
 import com.roadmap.securevault.entity.User;
 import com.roadmap.securevault.entity.enums.RoleName;
 import com.roadmap.securevault.exception.CredentialsTakenException;
@@ -11,6 +9,8 @@ import com.roadmap.securevault.mapper.UserMapper;
 import com.roadmap.securevault.repo.RoleRepository;
 import com.roadmap.securevault.repo.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -32,6 +32,7 @@ public class UserService implements UserDetailsService {
 
     private final AccessJwtService accessJwtService;
     private final RefreshJwtService refreshJwtService;
+    private final CookieService cookieService;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -41,61 +42,63 @@ public class UserService implements UserDetailsService {
     }
 
     @Transactional
-    public AuthenticatedResponse register(RegisterRequest request) {
-        if(userRepository.existsByUsername(request.username())) {
+    public void register(RegisterRequest credentials,
+                         HttpServletResponse response) {
+        if(userRepository.existsByUsername(credentials.username())) {
             throw new CredentialsTakenException("Username already exists");
         }
-        if(userRepository.existsByEmail(request.email())) {
+        if(userRepository.existsByEmail(credentials.email())) {
             throw new CredentialsTakenException("Email already exists");
         }
 
-        User user = UserMapper.toEntity(request);
+        User user = UserMapper.toEntity(credentials);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.getRoles().add(roleRepository
                 .findByName(RoleName.ROLE_USER)
                 .orElseThrow(() -> new EntityNotFoundException("Role not found")));
 
         User savedUser = userRepository.save(user);
-        return new AuthenticatedResponse(
+        cookieService.addTokenCookies(
+                response,
                 accessJwtService.generateAccessToken(savedUser),
-                refreshJwtService.generateRefreshToken(savedUser).getId()
+                refreshJwtService.generateRefreshToken(savedUser).getId().toString()
         );
     }
 
     @Transactional
-    public AuthenticatedResponse login(LoginRequest request) {
+    public void login(LoginRequest credentials,
+                                       HttpServletResponse response) {
         User user = userRepository
-                .findByUsername(request.username())
+                .findByUsername(credentials.username())
                 .orElseThrow(() -> new BadCredentialsException("Username or password is incorrect"));
 
-        if (!passwordEncoder.matches(request.password(), user.getPassword())) {
+        if (!passwordEncoder.matches(credentials.password(), user.getPassword())) {
             throw new BadCredentialsException("Invalid credentials.");
         }
 
-        RefreshToken refreshToken = refreshJwtService.generateRefreshToken(user);
-        return new AuthenticatedResponse(
+        cookieService.addTokenCookies(
+                response,
                 accessJwtService.generateAccessToken(user),
-                refreshToken.getId()
+                refreshJwtService.generateRefreshToken(user).getId().toString()
         );
     }
 
     @Transactional
-    public AuthenticatedResponse refreshToken(UUID id) {
-        RefreshJwtService.JwtRotationResult result = refreshJwtService.validateAndRotate(id);
-        return new AuthenticatedResponse(
-                result.accessToken(),
-                result.refreshToken()
-        );
+    public void refreshToken(HttpServletRequest request, HttpServletResponse response) {
+        RefreshJwtService.JwtRotationResult result = refreshJwtService.validateAndRotate(request);
+        cookieService.addTokenCookies(response, result.accessToken(), result.refreshToken().toString());
     }
 
     @Transactional
-    public void logout() {
+    public void logout(HttpServletResponse response) {
         refreshJwtService.revokeAllTokensForUser(
                 userRepository.findByUsername(
                         SecurityContextHolder
                                 .getContext()
                                 .getAuthentication()
                                 .getName())
-                        .get());
+                        .get()
+                );
+        cookieService.clearTokenCookies(response);
     }
 }

@@ -2,6 +2,8 @@ package com.roadmap.securevault.controller;
 
 import com.roadmap.securevault.dto.RegisterRequest;
 import com.roadmap.securevault.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,8 +21,9 @@ public class AuthController {
     private final UserService userService;
 
     @PostMapping("/register")
-    public ResponseEntity<Void> register(@Valid @RequestBody RegisterRequest request) {
-        userService.register(request);
+    public ResponseEntity<Void> register(@Valid @RequestBody RegisterRequest credentials,
+                                         HttpServletResponse response) {
+        userService.register(credentials, response);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 }
