@@ -263,28 +263,6 @@ class AuthServiceTest {
         @Test
         @DisplayName("Refresh with valid refresh token; successful")
         void refreshWithValidRefreshToken() {
-
-
-//            when(refreshTokenRepository.findById(any()))
-//                    .thenReturn(Optional.of(com.roadmap.securevault.entity.RefreshToken.builder()
-//                            .id(UUID.fromString(refreshToken))
-//                            .user(user)
-//                            .expiryDate(new Date(System.currentTimeMillis() + jwtProperties.refreshTokenExpiration()))
-//                            .build()));
-//            when(refreshTokenRepository.saveAndFlush(any())).thenReturn(
-//                    com.roadmap.securevault.entity.RefreshToken.builder()
-//                            .id(UUID.randomUUID())
-//                            .user(user)
-//                            .expiryDate(new Date(System.currentTimeMillis() + jwtProperties.refreshTokenExpiration()))
-//                            .build()
-//            );
-//            when(refreshJwtService.generateRefreshToken(any())).thenReturn(
-//                    com.roadmap.securevault.entity.RefreshToken.builder()
-//                            .id(UUID.randomUUID())
-//                            .user(user)
-//                            .expiryDate(new Date(System.currentTimeMillis() + jwtProperties.refreshTokenExpiration()))
-//                            .build());
-
             when(refreshJwtService.validateAndRotate(any())).thenReturn(
                     new RefreshJwtService.JwtRotationResult("accessToken", UUID.randomUUID(), user));
             doAnswer(
