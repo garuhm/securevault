@@ -33,6 +33,7 @@ public class RefreshJwtService {
                 .expiryDate(new Date(System.currentTimeMillis() + jwtProperties.refreshTokenExpiration()))
                 .build();
 
+        user.getRefreshTokens().add(refreshToken);
         refreshTokenRepository.saveAndFlush(refreshToken);
 
         return refreshToken;
@@ -42,7 +43,7 @@ public class RefreshJwtService {
     public JwtRotationResult validateAndRotate(HttpServletRequest request) {
         String token = cookieService.extractTokenFromCookie(request, cookieProperties.refreshTokenCookieName());
         if(token == null) {
-            throw new InvalidCookieException("Refresh token not found in cookie " + cookieProperties.refreshTokenCookieName() + ".");
+            throw new InvalidCookieException("Refresh token cookie not found in request.");
         }
         UUID parsedToken;
         try {
