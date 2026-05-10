@@ -4,13 +4,11 @@ import com.roadmap.securevault.config.properties.CookieProperties;
 import com.roadmap.securevault.config.properties.JwtProperties;
 import com.roadmap.securevault.dto.LoginRequest;
 import com.roadmap.securevault.dto.RegisterRequest;
-import com.roadmap.securevault.entity.RefreshToken;
 import com.roadmap.securevault.entity.Role;
 import com.roadmap.securevault.entity.User;
 import com.roadmap.securevault.entity.enums.RoleName;
 import com.roadmap.securevault.exception.CredentialsTakenException;
 import com.roadmap.securevault.mapper.UserMapper;
-import com.roadmap.securevault.repo.RefreshTokenRepository;
 import com.roadmap.securevault.repo.RoleRepository;
 import com.roadmap.securevault.repo.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -23,7 +21,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -31,7 +28,6 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Optional;
@@ -267,10 +263,7 @@ class AuthServiceTest {
         @Test
         @DisplayName("Refresh with valid refresh token; successful")
         void refreshWithValidRefreshToken() {
-//            String refreshToken = UUID.randomUUID().toString();
-//            request.setCookies(
-//                    new Cookie(cookieProperties.refreshTokenCookieName(), refreshToken),
-//                    new Cookie(cookieProperties.accessTokenCookieName(), "accessToken"));
+
 
 //            when(refreshTokenRepository.findById(any()))
 //                    .thenReturn(Optional.of(com.roadmap.securevault.entity.RefreshToken.builder()
@@ -306,50 +299,6 @@ class AuthServiceTest {
             verify(cookieService, times(1)).addTokenCookies(eq(response), eq("accessToken"), any());
 
             assertEquals(2, response.getCookies().length);
-
-//            Cookie requestRefreshCookie = Arrays.stream(request.getCookies())
-//                    .filter(
-//                            cookie -> cookie.getName()
-//                                    .equals(cookieProperties.refreshTokenCookieName()))
-//                    .findFirst()
-//                    .get();
-//
-//            Cookie requestAccessCookie = Arrays.stream(request.getCookies())
-//                    .filter(
-//                            cookie -> cookie.getName()
-//                                    .equals(cookieProperties.accessTokenCookieName()))
-//                    .findFirst()
-//                    .get();
-//
-//            Cookie responseRefreshCookie = Arrays.stream(response.getCookies())
-//                    .filter(
-//                            cookie -> cookie.getName()
-//                                    .equals(cookieProperties.refreshTokenCookieName()))
-//                    .findFirst()
-//                    .get();
-//
-//            Cookie responseAccessCookie = Arrays.stream(response.getCookies())
-//                    .filter(
-//                            cookie -> cookie.getName()
-//                                    .equals(cookieProperties.accessTokenCookieName()))
-//                    .findFirst()
-//                    .get();
-//
-//            assertNotEquals(requestRefreshCookie.getValue(), responseRefreshCookie.getValue());
-//            assertNotEquals(requestAccessCookie.getValue(), responseAccessCookie.getValue());
-//
-//            assertNotNull(responseAccessCookie.getValue());
-//            assertTrue(accessJwtService.isTokenValid(responseAccessCookie.getValue(), user));
-//            assertEquals("/", responseAccessCookie.getPath());
-//            assertEquals(jwtProperties.accessTokenExpiration() / 1000, responseAccessCookie.getMaxAge());
-//            assertTrue(responseAccessCookie.isHttpOnly());
-//            assertFalse(responseAccessCookie.getSecure());
-//
-//            assertNotNull(responseAccessCookie.getValue());
-//            assertEquals(cookieProperties.refreshTokenCookiePath(), responseAccessCookie.getPath());
-//            assertEquals(jwtProperties.refreshTokenExpiration() / 1000, responseAccessCookie.getMaxAge());
-//            assertTrue(responseAccessCookie.isHttpOnly());
-//            assertFalse(responseAccessCookie.getSecure());
         }
     }
 }

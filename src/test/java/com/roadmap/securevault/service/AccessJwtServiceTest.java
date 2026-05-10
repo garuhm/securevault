@@ -2,6 +2,7 @@ package com.roadmap.securevault.service;
 
 import com.roadmap.securevault.config.properties.JwtProperties;
 import com.roadmap.securevault.entity.User;
+import com.roadmap.securevault.repo.RefreshTokenRepository;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.UnsupportedJwtException;
@@ -43,7 +44,7 @@ class AccessJwtServiceTest {
     private AccessJwtService accessJwtService;
 
     @BeforeEach
-    void globalSetUp() {
+    void setUp() {
         user = User.builder()
                 .username(USERNAME)
                 .email(EMAIL)
