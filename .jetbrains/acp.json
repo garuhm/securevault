@@ -1,0 +1,11 @@
+{
+  "default_mcp_settings": {},
+  "agent_servers": {
+    "Claude Code": {
+      "command": "npx",
+      "args": [
+        "@agentclientprotocol/claude-agent-acp@latest"
+      ]
+    }
+  }
+}
