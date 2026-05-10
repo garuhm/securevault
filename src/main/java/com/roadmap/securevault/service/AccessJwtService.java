@@ -1,10 +1,7 @@
 package com.roadmap.securevault.service;
 
 import com.roadmap.securevault.config.properties.JwtProperties;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -35,7 +32,7 @@ public class AccessJwtService {
         } catch (ExpiredJwtException e) {
             throw new ExpiredJwtException(e.getHeader(), e.getClaims(), "Token has expired", e);
         } catch (JwtException e) {
-            throw new JwtException("Invalid JWT token", e);
+            throw new UnsupportedJwtException("Invalid JWT token", e);
         }
     }
 

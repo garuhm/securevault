@@ -48,8 +48,6 @@ class AuthServiceTest {
     @Mock
     private RoleRepository roleRepository;
     @Mock
-    private RefreshTokenRepository refreshTokenRepository;
-    @Mock
     private PasswordEncoder passwordEncoder;
     @Mock
     private CookieService cookieService;
