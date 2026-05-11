@@ -1,6 +1,7 @@
-package com.roadmap.securevault.repo;
+package com.roadmap.securevault.security;
 
 import com.roadmap.securevault.config.properties.CookieProperties;
+import com.roadmap.securevault.service.helper.CookieService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -10,19 +11,18 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequ
 import org.springframework.stereotype.Component;
 import org.springframework.util.SerializationUtils;
 
-import java.util.Arrays;
 import java.util.Base64;
-import java.util.Optional;
 
 // this is for csrf protection
 @Component
 @RequiredArgsConstructor
 public class CookieAuthorizationRequestRepository implements AuthorizationRequestRepository<OAuth2AuthorizationRequest> {
     private final CookieProperties cookieProperties;
+    private final CookieService cookieService;
 
     @Override
     public OAuth2AuthorizationRequest loadAuthorizationRequest(HttpServletRequest request) {
-        return getCookieValue(request, cookieProperties.oauth2RequestCookieName())
+        return cookieService.getCookieValue(request, cookieProperties.oauth2RequestCookieName())
                 .map(this::deserialize)
                 .orElse(null);
     }
@@ -65,14 +65,5 @@ public class CookieAuthorizationRequestRepository implements AuthorizationReques
     private OAuth2AuthorizationRequest deserialize(String value) {
         return (OAuth2AuthorizationRequest) SerializationUtils.deserialize(
                 Base64.getUrlDecoder().decode(value));
-    }
-
-    private Optional<String> getCookieValue(HttpServletRequest request, String name) {
-        if (request.getCookies() == null) return Optional.empty();
-
-        return Arrays.stream(request.getCookies())
-                .filter(c -> name.equals(c.getName()))
-                .map(Cookie::getValue)
-                .findFirst();
     }
 }

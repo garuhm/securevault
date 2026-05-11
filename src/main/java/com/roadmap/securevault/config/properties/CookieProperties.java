@@ -8,6 +8,7 @@ public record CookieProperties(
         String refreshTokenCookieName,
         String refreshTokenCookiePath,
         String oauth2RequestCookieName,
-        int oauth2RequestCookieMaxAge
+        int oauth2RequestCookieMaxAge,
+        String oauth2LinkingRequestCookieName
 ) {
 }

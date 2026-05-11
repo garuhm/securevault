@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -46,13 +47,24 @@ public class CookieService {
         response.addCookie(refreshCookie);
     }
 
-    public String extractTokenFromCookie(HttpServletRequest request, String cookieName) {
-        if (request.getCookies() == null) return null;
+    public void clearCookie(HttpServletResponse response, String cookieName) {
+        Cookie cookie = new Cookie(cookieName, "");
+        cookie.setPath("/");
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
+    }
+
+    public Optional<String> getCookieValue(HttpServletRequest request, String name) {
+        if (request.getCookies() == null) return Optional.empty();
 
         return Arrays.stream(request.getCookies())
-                .filter(cookie -> cookieName.equals(cookie.getName()))
+                .filter(c -> name.equals(c.getName()))
                 .map(Cookie::getValue)
-                .findFirst()
+                .findFirst();
+    }
+
+    public String extractTokenFromCookie(HttpServletRequest request, String cookieName) {
+        return getCookieValue(request, cookieName)
                 .orElse(null);
     }
 }

@@ -54,7 +54,7 @@ public class AuthService {
                 .findByName(RoleName.ROLE_USER)
                 .orElseThrow(() -> new EntityNotFoundException("Role not found")));
 
-        User savedUser = userRepository.save(user);
+        User savedUser = userRepository.saveAndFlush(user);
         cookieService.addTokenCookies(
                 response,
                 accessJwtService.generateAccessToken(savedUser),
@@ -66,6 +66,12 @@ public class AuthService {
     public void login(LoginRequest credentials,
                                        HttpServletResponse response) {
         User user = (User) userService.loadUserByUsername(credentials.username());
+
+        if (user.getPassword() == null) {
+            throw new BadCredentialsException(
+                    "This account uses " + user.getOAuth2Links().iterator().next().getProvider() + " OAuth2 login"
+            );
+        }
 
         if (!passwordEncoder.matches(credentials.password(), user.getPassword())) {
             throw new BadCredentialsException("Username or password is incorrect.");

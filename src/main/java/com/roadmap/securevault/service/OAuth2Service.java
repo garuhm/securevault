@@ -1,0 +1,186 @@
+package com.roadmap.securevault.service;
+
+import com.roadmap.securevault.config.properties.CookieProperties;
+import com.roadmap.securevault.config.properties.OAuth2Properties;
+import com.roadmap.securevault.entity.OAuth2Link;
+import com.roadmap.securevault.entity.Role;
+import com.roadmap.securevault.entity.User;
+import com.roadmap.securevault.entity.enums.RoleName;
+import com.roadmap.securevault.repo.OAuth2LinkRepository;
+import com.roadmap.securevault.repo.RoleRepository;
+import com.roadmap.securevault.repo.UserRepository;
+import com.roadmap.securevault.security.CustomOAuth2User;
+import com.roadmap.securevault.service.helper.CookieService;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import java.util.Set;
+import java.util.UUID;
+
+@Service
+@RequiredArgsConstructor
+public class OAuth2Service implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
+    private final DefaultOAuth2UserService delegate = new DefaultOAuth2UserService();
+    private final OAuth2LinkRepository oAuth2LinkRepository;
+
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
+
+    private final OAuth2Properties oauth2Properties;
+    private final CookieProperties cookieProperties;
+
+    private final CookieService cookieService;
+
+    @Override
+    @Transactional
+    public OAuth2User loadUser(OAuth2UserRequest request) {
+        OAuth2User oAuth2User = delegate.loadUser(request);
+        String provider = request.getClientRegistration().getRegistrationId();
+        String providerUserId = extractProviderUserId(oAuth2User, provider);
+        String email = extractEmail(oAuth2User, provider);
+
+        HttpServletRequest httpRequest = ((ServletRequestAttributes) RequestContextHolder
+                .getRequestAttributes())
+                .getRequest();
+        String linkingUsername = cookieService.getCookieValue(httpRequest, cookieProperties.oauth2LinkingRequestCookieName()).orElse(null);
+
+        User user;
+//        if linking cookie, then user wants new link
+//        otherwise, only trying to log in
+        if (linkingUsername != null) {
+            user = createNewLink(linkingUsername, provider, providerUserId, email);
+        } else {
+            // normal login flow
+            user = handleOAuth2Login(provider, providerUserId, email);
+        }
+
+        return new CustomOAuth2User(oAuth2User, user);
+    }
+
+    @Transactional
+    public void unlink(String provider) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        if (!oAuth2LinkRepository.existsByProviderAndUserId(provider, user.getId())) {
+            throw new OAuth2AuthenticationException("Link with provider " + provider + " not found");
+        }
+
+        boolean hasPassword = user.getPassword() != null;
+        boolean hasOtherLinks = oAuth2LinkRepository.countByUserId(user.getId()) > 1;
+
+        if (!hasPassword && !hasOtherLinks) {
+            throw new OAuth2AuthenticationException(
+                    "This OAuth2 link is the only one for this user, cannot unlink"
+            );
+        }
+
+        oAuth2LinkRepository.deleteByProviderAndUserId(provider, user.getId());
+    }
+
+    // links for existing accts when already authenticated
+    private User createNewLink(String linkingUsername, String provider,
+                                     String providerUserId, String email) {
+        User user = userRepository.findByUsername(linkingUsername)
+                .orElseThrow(() -> new OAuth2AuthenticationException("SecureVault user not found"));
+
+        // check this provider account isn't already linked to someone else
+        if (oAuth2LinkRepository.existsByProviderAndProviderUserId(provider, providerUserId)) {
+            throw new OAuth2AuthenticationException(
+                    "This " + provider + " account is already linked to another user"
+            );
+        }
+
+        // check this user doesn't already have this provider linked
+        if (oAuth2LinkRepository.existsByProviderAndUserId(provider, user.getId())) {
+            throw new OAuth2AuthenticationException(
+                    "You already have a " + provider + " account linked"
+            );
+        }
+
+        oAuth2LinkRepository.save(OAuth2Link.builder()
+                .user(user)
+                .provider(provider)
+                .providerUserId(providerUserId)
+                .email(email)
+                .build());
+        return user;
+    }
+
+    // oauth2 login, new user and existing
+    private User handleOAuth2Login(String provider, String providerUserId,
+                                   String email) {
+        // returning OAuth2 user — link already exists
+        return oAuth2LinkRepository.findByProviderAndProviderUserId(provider, providerUserId)
+                .map(OAuth2Link::getUser)
+                .orElseGet(() -> {
+                    User user = userRepository.findByEmail(email)
+                            .orElseGet(() -> createNewUser(email));
+
+                    if (oAuth2LinkRepository.existsByProviderAndUserId(provider, user.getId())) {
+                        throw new OAuth2AuthenticationException(
+                                "A different " + provider + " account is already linked to this account"
+                        );
+                    }
+
+
+                    oAuth2LinkRepository.saveAndFlush(OAuth2Link.builder()
+                            .user(user)
+                            .provider(provider)
+                            .providerUserId(providerUserId)
+                            .email(email)
+                            .build());
+                    return user;
+                });
+    }
+
+    private User createNewUser(String email) {
+        String baseUsername = email.split("@")[0];
+        String username = userRepository.existsByUsername(baseUsername)
+                ? baseUsername + "_" + UUID.randomUUID().toString().substring(0, 5)
+                : baseUsername;
+
+        Role userRole = roleRepository.findByName(RoleName.ROLE_USER)
+                .orElseThrow(() -> new EntityNotFoundException("Role not found"));
+        User user = User.builder()
+                .username(username)
+                .email(email)
+                .roles(Set.of(userRole))
+                .build();
+        return userRepository.saveAndFlush(user);
+    }
+
+    private String extractProviderUserId(OAuth2User oAuth2User, String provider) {
+        String idAttribute = oauth2Properties.providerIdAttributes()
+                .getOrDefault(provider, "sub");
+        String id = oAuth2User.getAttribute(idAttribute);
+        if (id == null) {
+            throw new OAuth2AuthenticationException(
+                    "Could not extract user ID from provider: " + provider
+            );
+        }
+        return id;
+    }
+
+    private String extractEmail(OAuth2User oAuth2User, String provider) {
+        String attribute = oauth2Properties.providerEmailAttributes()
+                .getOrDefault(provider, "email");
+        String email = oAuth2User.getAttribute(attribute);
+        if (email == null) {
+            throw new OAuth2AuthenticationException(
+                    "Could not extract email from provider: " + provider
+            );
+        }
+        return email;
+    }
+}

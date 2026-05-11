@@ -33,3 +33,11 @@ security:
     refresh-token-cookie-path: /auth/refresh
     oauth2-request-cookie-name: securevault-oauth2-request
     oauth2-request-cookie-max-age: 180
+    oauth2-linking-request-cookie-name: securevault-oauth2-linking-request
+  oauth2:
+    provider-email-attributes:
+      google: email
+#      spotify: email
+    provider-id-attributes:
+      google: sub
+#      spotify: id
