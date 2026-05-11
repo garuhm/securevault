@@ -6,6 +6,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public record CookieProperties(
         String accessTokenCookieName,
         String refreshTokenCookieName,
-        String refreshTokenCookiePath
+        String refreshTokenCookiePath,
+        String oauth2CookieName,
+        Long oauth2CookieExpiration
 ) {
 }

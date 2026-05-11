@@ -31,3 +31,5 @@ security:
     access-token-cookie-name: securevault-access-token
     refresh-token-cookie-name: securevault-refresh-token
     refresh-token-cookie-path: /auth/refresh
+    oauth2-request-cookie-name: securevault-oauth2-request
+    oauth2-request-cookie-expiration: 180000
