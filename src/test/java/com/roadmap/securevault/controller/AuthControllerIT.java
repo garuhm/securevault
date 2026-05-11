@@ -10,7 +10,7 @@ import com.roadmap.securevault.entity.enums.RoleName;
 import com.roadmap.securevault.repo.RefreshTokenRepository;
 import com.roadmap.securevault.repo.RoleRepository;
 import com.roadmap.securevault.repo.UserRepository;
-import com.roadmap.securevault.service.CookieService;
+import com.roadmap.securevault.service.helper.CookieService;
 import com.roadmap.securevault.test_util.testcontainers.AbstractPostgresIT;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;

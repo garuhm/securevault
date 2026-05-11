@@ -2,6 +2,7 @@ package com.roadmap.securevault.service;
 
 import com.roadmap.securevault.config.properties.CookieProperties;
 import com.roadmap.securevault.config.properties.JwtProperties;
+import com.roadmap.securevault.service.helper.CookieService;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

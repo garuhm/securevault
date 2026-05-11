@@ -1,4 +1,4 @@
-package com.roadmap.securevault.service;
+package com.roadmap.securevault.service.helper;
 
 import com.roadmap.securevault.config.properties.CookieProperties;
 import com.roadmap.securevault.config.properties.JwtProperties;
