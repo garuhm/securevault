@@ -11,6 +11,17 @@ spring:
     hibernate:
       ddl-auto: update
 
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope:
+              - email
+              - profile
+
 security:
   jwt:
     secret: vTpTSehgudwctoSkCRB3HCdrW8NJBRA1s02pf7TXh9E
