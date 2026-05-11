@@ -7,7 +7,7 @@ public record CookieProperties(
         String accessTokenCookieName,
         String refreshTokenCookieName,
         String refreshTokenCookiePath,
-        String oauth2CookieName,
-        Long oauth2CookieExpiration
+        String oauth2RequestCookieName,
+        Long oauth2RequestCookieExpiration
 ) {
 }
