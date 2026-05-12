@@ -16,43 +16,42 @@ import java.util.Optional;
 public class CookieService {
     private final JwtProperties jwtProperties;
     private final CookieProperties cookieProperties;
-    
+
+    public void addCookie(HttpServletResponse response, String cookieName, String cookieValue, String path, int maxAge) {
+        Cookie cookie = new Cookie(cookieName, cookieValue);
+        cookie.setPath(path);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(false);
+        cookie.setMaxAge(maxAge);
+        response.addCookie(cookie);
+    }
+
+    public void clearCookie(HttpServletResponse response, String cookieName, String path) {
+        addCookie(response, cookieName, "", path, 0);
+    }
+
     public void addTokenCookies(HttpServletResponse response, String accessToken, String refreshToken) {
-        Cookie access = new Cookie(cookieProperties.accessTokenCookieName(), accessToken);
-        access.setPath("/");
-        access.setHttpOnly(true);
-        access.setSecure(false);
-        access.setMaxAge((int) (jwtProperties.accessTokenExpiration() / 1000));
-        
-        Cookie refresh = new Cookie(cookieProperties.refreshTokenCookieName(), refreshToken);
-        refresh.setPath(cookieProperties.refreshTokenCookiePath());
-        refresh.setHttpOnly(true);
-        refresh.setSecure(false);
-        refresh.setMaxAge((int) (jwtProperties.refreshTokenExpiration() / 1000));
-        
-        response.addCookie(access);
-        response.addCookie(refresh);
+        addCookie(response,
+                cookieProperties.accessTokenCookieName(),
+                accessToken,
+                "/",
+                (int) (jwtProperties.accessTokenExpiration() / 1000));
+        addCookie(response,
+                cookieProperties.refreshTokenCookieName(),
+                refreshToken,
+                cookieProperties.refreshTokenCookiePath(),
+                (int) (jwtProperties.refreshTokenExpiration() / 1000));
     }
 
     public void clearTokenCookies(HttpServletResponse response) {
-        Cookie accessCookie = new Cookie(cookieProperties.accessTokenCookieName(), "");
-        accessCookie.setPath("/");
-        accessCookie.setMaxAge(0);
-
-        Cookie refreshCookie = new Cookie(cookieProperties.refreshTokenCookieName(), "");
-        refreshCookie.setPath(cookieProperties.refreshTokenCookiePath());
-        refreshCookie.setMaxAge(0);
-
-        response.addCookie(accessCookie);
-        response.addCookie(refreshCookie);
+        clearCookie(response,
+                cookieProperties.accessTokenCookieName(),
+                "/");
+        clearCookie(response,
+                cookieProperties.refreshTokenCookieName(),
+                cookieProperties.refreshTokenCookiePath());
     }
 
-    public void clearCookie(HttpServletResponse response, String cookieName) {
-        Cookie cookie = new Cookie(cookieName, "");
-        cookie.setPath("/");
-        cookie.setMaxAge(0);
-        response.addCookie(cookie);
-    }
 
     public Optional<String> getCookieValue(HttpServletRequest request, String name) {
         if (request.getCookies() == null) return Optional.empty();
