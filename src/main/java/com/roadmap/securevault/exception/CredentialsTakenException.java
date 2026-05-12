@@ -1,8 +1,6 @@
 package com.roadmap.securevault.exception;
 
-import org.springframework.web.server.ServerWebInputException;
-
-public class CredentialsTakenException extends ServerWebInputException {
+public class CredentialsTakenException extends RuntimeException {
     public CredentialsTakenException(String message) {
         super(message);
     }

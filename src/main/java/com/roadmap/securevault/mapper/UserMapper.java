@@ -1,5 +1,6 @@
 package com.roadmap.securevault.mapper;
 
+import com.roadmap.securevault.dto.MeResponse;
 import com.roadmap.securevault.dto.RegisterRequest;
 import com.roadmap.securevault.entity.User;
 
@@ -13,11 +14,7 @@ public class UserMapper {
                 .build();
     }
 
-    public static RegisterRequest toDto(User user) {
-        return new RegisterRequest(
-                user.getUsername(),
-                user.getEmail(),
-                user.getPassword()
-        );
+    public static MeResponse toMeResponse(User user) {
+        return new MeResponse(user.getUsername(), user.getEmail());
     }
 }

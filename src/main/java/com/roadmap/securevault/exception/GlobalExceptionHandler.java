@@ -18,8 +18,7 @@ import java.util.stream.Collectors;
 public class GlobalExceptionHandler {
     @ExceptionHandler(value = {
             CredentialsTakenException.class,
-            OAuth2AuthenticationLinkException.class,
-            OAuth2AuthenticationUnlinkException.class})
+            OAuth2AuthenticationLinkException.class})
     public ResponseEntity<String> handleConflictException(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
     }

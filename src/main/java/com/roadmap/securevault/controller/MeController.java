@@ -2,12 +2,11 @@ package com.roadmap.securevault.controller;
 
 import com.roadmap.securevault.controller.annotation.ApiVersion;
 import com.roadmap.securevault.dto.MeResponse;
-import com.roadmap.securevault.entity.Role;
-import com.roadmap.securevault.entity.enums.RoleName;
-import com.roadmap.securevault.repo.RoleRepository;
-import com.roadmap.securevault.service.UserService;
+import com.roadmap.securevault.entity.User;
+import com.roadmap.securevault.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -17,16 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 @ApiVersion("v1")
 public class MeController {
-    private final UserService userService;
-//    private final RoleRepository roleRepository;
-
     @GetMapping("/me")
     public ResponseEntity<MeResponse> getMe() {
-        return ResponseEntity.ok(userService.me());
+        return ResponseEntity.ok(UserMapper.toMeResponse((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()));
     }
-//    @GetMapping("/me")
-//    public void getMe2() {
-//                roleRepository.saveAndFlush(Role.builder().name(RoleName.ROLE_USER).build());
-//        roleRepository.saveAndFlush(Role.builder().name(RoleName.ROLE_ADMIN).build());
-//    }
 }
