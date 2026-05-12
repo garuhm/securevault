@@ -54,7 +54,7 @@ public class SecurityConfig {
                             response.setContentType("application/json");
                             response.getWriter().write("{\"error\": \"Forbidden\"}");
                         })
-                )
+                );
         return http.build();
     }
 
