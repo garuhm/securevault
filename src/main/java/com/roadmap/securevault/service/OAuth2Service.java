@@ -13,6 +13,7 @@ import com.roadmap.securevault.security.CustomOAuth2User;
 import com.roadmap.securevault.service.helper.CookieService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -66,6 +67,16 @@ public class OAuth2Service implements OAuth2UserService<OAuth2UserRequest, OAuth
         }
 
         return new CustomOAuth2User(oAuth2User, user);
+    }
+
+    public void initiateLink(HttpServletResponse response) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        cookieService.addCookie(
+                response,
+                cookieProperties.oauth2LinkingRequestCookieName(),
+                user.getUsername(),
+                "/",
+                cookieProperties.oauth2RequestCookieMaxAge());
     }
 
     @Transactional
