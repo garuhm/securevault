@@ -78,7 +78,11 @@ class AuthServiceTest {
     private final CookieProperties cookieProperties = new CookieProperties(
             "securevault-access-token",
             "securevault-refresh-token",
-            "/auth/refresh"
+            "/auth/refresh",
+            "securevault-oauth2-request",
+            180,
+            "securevault-oauth2-linking-request"
+
     );
 
     @BeforeEach
@@ -124,14 +128,14 @@ class AuthServiceTest {
                 when(passwordEncoder.encode(credentials.password())).thenReturn("{bcrypt}" + credentials.password());
                 when(roleRepository.findByName(RoleName.ROLE_USER))
                         .thenReturn(Optional.of(Role.builder().name(RoleName.ROLE_USER).build()));
-                when(userRepository.save(user)).thenReturn(user);
+                when(userRepository.saveAndFlush(user)).thenReturn(user);
 
                 // when
                 authService.register(credentials, response);
             }
 
             //  then
-            verify(userRepository, times(1)).save(user);
+            verify(userRepository, times(1)).saveAndFlush(user);
             verify(passwordEncoder, times(1)).encode(credentials.password());
             verify(refreshJwtService, times(1)).generateRefreshToken(any());
             assertEquals("{bcrypt}" + credentials.password(), user.getPassword());

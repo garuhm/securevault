@@ -62,7 +62,11 @@ class RefreshJwtServiceTest {
     private final CookieProperties cookieProperties = new CookieProperties(
             "securevault-access-token",
             "securevault-refresh-token",
-            "/auth/refresh"
+            "/auth/refresh",
+            "securevault-oauth2-request",
+            180,
+            "securevault-oauth2-linking-request"
+
     );
 
     @InjectMocks
