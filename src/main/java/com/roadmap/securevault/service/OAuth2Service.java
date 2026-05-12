@@ -76,7 +76,7 @@ public class OAuth2Service implements OAuth2UserService<OAuth2UserRequest, OAuth
 
     public void initiateLink(String provider, HttpServletResponse response) {
         if (!oauth2Properties.providerIdAttributes().containsKey(provider)) {
-            throw new OAuth2ProviderNotFoundException("Unsupported provider: " + provider);
+            throw new OAuth2ProviderNotFoundException("Unsupported provider: " + provider); // 404
         }
 
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -91,7 +91,7 @@ public class OAuth2Service implements OAuth2UserService<OAuth2UserRequest, OAuth
     @Transactional
     public void unlink(String provider) {
         if (!oauth2Properties.providerIdAttributes().containsKey(provider)) {
-            throw new OAuth2ProviderNotFoundException("Unsupported provider: " + provider);
+            throw new OAuth2ProviderNotFoundException("Unsupported provider: " + provider); // 404
         }
 
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -190,7 +190,7 @@ public class OAuth2Service implements OAuth2UserService<OAuth2UserRequest, OAuth
         String id = oAuth2User.getAttribute(idAttribute);
         if (id == null) {
             throw new OAuth2CredentialsExtractionException(
-                    "Could not extract user ID from provider: " + provider // 500
+                    "Could not extract user ID from provider: " + provider // 502
             );
         }
         return id;
@@ -202,7 +202,7 @@ public class OAuth2Service implements OAuth2UserService<OAuth2UserRequest, OAuth
         String email = oAuth2User.getAttribute(attribute);
         if (email == null) {
             throw new OAuth2CredentialsExtractionException(
-                    "Could not extract email from provider: " + provider // 500
+                    "Could not extract email from provider: " + provider // 502
             );
         }
         return email;

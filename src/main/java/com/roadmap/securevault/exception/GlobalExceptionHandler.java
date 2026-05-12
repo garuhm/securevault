@@ -16,8 +16,11 @@ import java.util.stream.Collectors;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
-    @ExceptionHandler(value = CredentialsTakenException.class)
-    public ResponseEntity<String> handleCredentialsTakenException(CredentialsTakenException ex) {
+    @ExceptionHandler(value = {
+            CredentialsTakenException.class,
+            OAuth2AuthenticationLinkException.class,
+            OAuth2AuthenticationUnlinkException.class})
+    public ResponseEntity<String> handleConflictException(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
     }
 
@@ -25,7 +28,8 @@ public class GlobalExceptionHandler {
             UsernameNotFoundException.class,
             BadCredentialsException.class,
             InvalidRefreshTokenException.class,
-            InvalidCookieException.class})
+            InvalidCookieException.class,
+            OAuth2ProviderNotFoundException.class})
     public ResponseEntity<String> handleUnauthorizedException(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
     }
@@ -33,6 +37,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = {EntityNotFoundException.class})
     public ResponseEntity<String> handleNotFoundException(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(value = OAuth2AuthenticationUnlinkException.class)
+    public ResponseEntity<String> handleOAuth2AuthenticationUnlinkException(RuntimeException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
@@ -47,5 +56,10 @@ public class GlobalExceptionHandler {
                                 (existing, duplicate) -> existing));
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
+    }
+
+    @ExceptionHandler(value = OAuth2CredentialsExtractionException.class)
+    public ResponseEntity<String> handleOAuth2CredentialsExtractionException(RuntimeException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(ex.getMessage());
     }
 }
