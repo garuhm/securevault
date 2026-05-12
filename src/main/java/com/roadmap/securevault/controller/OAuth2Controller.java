@@ -19,7 +19,7 @@ public class OAuth2Controller {
     @GetMapping("/link/{provider}")
     public ResponseEntity<Void> linkProvider(@PathVariable String provider,
                                              HttpServletResponse response) {
-        oAuth2Service.initiateLink(response);
+        oAuth2Service.initiateLink(provider, response);
         return ResponseEntity.status(HttpStatus.FOUND)
                 .header("Location", "/oauth2/authorization/" + provider)
                 .build();

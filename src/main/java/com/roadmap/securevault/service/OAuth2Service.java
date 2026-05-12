@@ -6,6 +6,10 @@ import com.roadmap.securevault.entity.OAuth2Link;
 import com.roadmap.securevault.entity.Role;
 import com.roadmap.securevault.entity.User;
 import com.roadmap.securevault.entity.enums.RoleName;
+import com.roadmap.securevault.exception.OAuth2AuthenticationLinkException;
+import com.roadmap.securevault.exception.OAuth2AuthenticationUnlinkException;
+import com.roadmap.securevault.exception.OAuth2CredentialsExtractionException;
+import com.roadmap.securevault.exception.OAuth2ProviderNotFoundException;
 import com.roadmap.securevault.repo.OAuth2LinkRepository;
 import com.roadmap.securevault.repo.RoleRepository;
 import com.roadmap.securevault.repo.UserRepository;
@@ -16,6 +20,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
@@ -69,7 +74,11 @@ public class OAuth2Service implements OAuth2UserService<OAuth2UserRequest, OAuth
         return new CustomOAuth2User(oAuth2User, user);
     }
 
-    public void initiateLink(HttpServletResponse response) {
+    public void initiateLink(String provider, HttpServletResponse response) {
+        if (!oauth2Properties.providerIdAttributes().containsKey(provider)) {
+            throw new OAuth2ProviderNotFoundException("Unsupported provider: " + provider);
+        }
+
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         cookieService.addCookie(
                 response,
@@ -81,18 +90,22 @@ public class OAuth2Service implements OAuth2UserService<OAuth2UserRequest, OAuth
 
     @Transactional
     public void unlink(String provider) {
+        if (!oauth2Properties.providerIdAttributes().containsKey(provider)) {
+            throw new OAuth2ProviderNotFoundException("Unsupported provider: " + provider);
+        }
+
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         if (!oAuth2LinkRepository.existsByProviderAndUserId(provider, user.getId())) {
-            throw new OAuth2AuthenticationException("Link with provider " + provider + " not found");
+            throw new OAuth2ProviderNotFoundException("Link with provider " + provider + " not found"); // 404
         }
 
         boolean hasPassword = user.getPassword() != null;
         boolean hasOtherLinks = oAuth2LinkRepository.countByUserId(user.getId()) > 1;
 
         if (!hasPassword && !hasOtherLinks) {
-            throw new OAuth2AuthenticationException(
-                    "This OAuth2 link is the only one for this user, cannot unlink"
+            throw new OAuth2AuthenticationUnlinkException(
+                    "This OAuth2 link is the only one for this user, cannot unlink" // 400
             );
         }
 
@@ -103,19 +116,19 @@ public class OAuth2Service implements OAuth2UserService<OAuth2UserRequest, OAuth
     private User createNewLink(String linkingUsername, String provider,
                                      String providerUserId, String email) {
         User user = userRepository.findByUsername(linkingUsername)
-                .orElseThrow(() -> new OAuth2AuthenticationException("SecureVault user not found"));
+                .orElseThrow(() -> new UsernameNotFoundException("SecureVault user not found")); // 404
 
         // check this provider account isn't already linked to someone else
         if (oAuth2LinkRepository.existsByProviderAndProviderUserId(provider, providerUserId)) {
-            throw new OAuth2AuthenticationException(
-                    "This " + provider + " account is already linked to another user"
+            throw new OAuth2AuthenticationLinkException(
+                    "This " + provider + " account is already linked to another user" // 409
             );
         }
 
         // check this user doesn't already have this provider linked
         if (oAuth2LinkRepository.existsByProviderAndUserId(provider, user.getId())) {
-            throw new OAuth2AuthenticationException(
-                    "You already have a " + provider + " account linked"
+            throw new OAuth2AuthenticationLinkException(
+                    "You already have a " + provider + " account linked" // 409
             );
         }
 
@@ -139,8 +152,8 @@ public class OAuth2Service implements OAuth2UserService<OAuth2UserRequest, OAuth
                             .orElseGet(() -> createNewUser(email));
 
                     if (oAuth2LinkRepository.existsByProviderAndUserId(provider, user.getId())) {
-                        throw new OAuth2AuthenticationException(
-                                "A different " + provider + " account is already linked to this account"
+                        throw new OAuth2AuthenticationLinkException(
+                                "A different " + provider + " account is already linked to this account" // 409
                         );
                     }
 
@@ -176,8 +189,8 @@ public class OAuth2Service implements OAuth2UserService<OAuth2UserRequest, OAuth
                 .getOrDefault(provider, "sub");
         String id = oAuth2User.getAttribute(idAttribute);
         if (id == null) {
-            throw new OAuth2AuthenticationException(
-                    "Could not extract user ID from provider: " + provider
+            throw new OAuth2CredentialsExtractionException(
+                    "Could not extract user ID from provider: " + provider // 500
             );
         }
         return id;
@@ -188,8 +201,8 @@ public class OAuth2Service implements OAuth2UserService<OAuth2UserRequest, OAuth
                 .getOrDefault(provider, "email");
         String email = oAuth2User.getAttribute(attribute);
         if (email == null) {
-            throw new OAuth2AuthenticationException(
-                    "Could not extract email from provider: " + provider
+            throw new OAuth2CredentialsExtractionException(
+                    "Could not extract email from provider: " + provider // 500
             );
         }
         return email;
