@@ -34,7 +34,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
                 request, cookieProperties.oauth2LinkingRequestCookieName()
         ).orElse(null);
 
-        cookieService.clearCookie(response, cookieProperties.oauth2LinkingRequestCookieName());
+        cookieService.clearCookie(response, cookieProperties.oauth2LinkingRequestCookieName(), "/");
 
         if (linkingUsername != null) {
             // linking flow — user already has tokens, just return 200

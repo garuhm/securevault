@@ -1,6 +1,5 @@
 package com.roadmap.securevault.controller;
 
-import com.roadmap.securevault.config.SecurityConfig;
 import com.roadmap.securevault.config.properties.CookieProperties;
 import com.roadmap.securevault.config.properties.JwtProperties;
 import com.roadmap.securevault.dto.LoginRequest;
@@ -8,9 +7,13 @@ import com.roadmap.securevault.dto.RegisterRequest;
 import com.roadmap.securevault.exception.CredentialsTakenException;
 import com.roadmap.securevault.exception.GlobalExceptionHandler;
 import com.roadmap.securevault.exception.InvalidRefreshTokenException;
+import com.roadmap.securevault.security.CookieAuthorizationRequestRepository;
+import com.roadmap.securevault.security.OAuth2SuccessHandler;
+import com.roadmap.securevault.service.OAuth2Service;
 import com.roadmap.securevault.service.helper.AccessJwtService;
 import com.roadmap.securevault.service.AuthService;
 import com.roadmap.securevault.service.helper.CookieService;
+import com.roadmap.securevault.test_util.mockito.TestSecurityConfig;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.DisplayName;
@@ -33,7 +36,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = AuthController.class)
-@Import({SecurityConfig.class, GlobalExceptionHandler.class})
+@Import({TestSecurityConfig.class, GlobalExceptionHandler.class})
 @DisplayName("AuthController WebMvc Tests")
 class AuthControllerWebMvcTest {
     @Autowired
@@ -42,19 +45,7 @@ class AuthControllerWebMvcTest {
     private ObjectMapper objectMapper;
 
     @MockitoBean
-    private CookieService cookieService;
-    @MockitoBean
-    private AuthService authService;
-    @MockitoBean
-    private AccessJwtService accessJwtService;
-    @MockitoBean
-    private UserDetailsService userDetailsService;
-    @MockitoBean
-    private JwtProperties jwtPropertiesBean;
-    @MockitoBean
-    private CookieProperties cookiePropertiesBean;
-    @MockitoBean
-    private PasswordEncoder passwordEncoder;
+    private AuthService authService;  // keep — your controller uses it
 
     @Nested
     @DisplayName("/auth/register")

@@ -14,7 +14,6 @@ import org.springframework.util.SerializationUtils;
 import java.util.Base64;
 
 // this is for csrf protection
-@Component
 @RequiredArgsConstructor
 public class CookieAuthorizationRequestRepository implements AuthorizationRequestRepository<OAuth2AuthorizationRequest> {
     private final CookieProperties cookieProperties;
