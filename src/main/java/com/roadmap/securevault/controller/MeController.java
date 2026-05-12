@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 @ApiVersion("v1")
 public class MeController {
     private final UserService userService;
-    private final RoleRepository roleRepository;
+//    private final RoleRepository roleRepository;
 
     @GetMapping("/me")
     public ResponseEntity<MeResponse> getMe() {
