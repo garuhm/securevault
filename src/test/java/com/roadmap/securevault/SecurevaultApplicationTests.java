@@ -13,12 +13,3 @@ class SecurevaultApplicationTests {
     }
 
 }
-
-// refactor to put refresh and access token in cookie
-// controller endpoints
-// update user repo tests
-// refresh token repo test
-// update user service tests
-// access and refresh service tests
-// update auth controller webmvc tests
-// update auth controller IT
