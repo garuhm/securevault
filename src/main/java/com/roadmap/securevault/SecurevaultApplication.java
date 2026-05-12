@@ -6,6 +6,7 @@ import com.roadmap.securevault.config.properties.OAuth2Properties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
 @EnableConfigurationProperties({
@@ -13,6 +14,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
         CookieProperties.class,
         OAuth2Properties.class
 })
+@EnableScheduling
 public class SecurevaultApplication {
 
     public static void main(String[] args) {

@@ -80,6 +80,13 @@ public class RefreshJwtService {
     public void revokeAllTokensForUser(UserDetails user) {
         refreshTokenRepository.revokeAllByUser((User) user);
     }
+
+    @Transactional
+    public void cleanUpRevokedAndExpired() {
+        refreshTokenRepository.deleteByExpiryDateBefore(new Date());
+        refreshTokenRepository.deleteByRevokedTrue();
+    }
+
     public record JwtRotationResult(String accessToken, UUID refreshToken, User user) {
     }
 }
