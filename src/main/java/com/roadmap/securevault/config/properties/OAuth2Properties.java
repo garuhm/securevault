@@ -7,6 +7,7 @@ import java.util.Map;
 @ConfigurationProperties(prefix = "security.oauth2")
 public record OAuth2Properties(
         Map<String, String> providerEmailAttributes,
-        Map<String, String> providerIdAttributes
+        Map<String, String> providerIdAttributes,
+        String redirectUrl
 ) {
 }

@@ -1,6 +1,7 @@
 package com.roadmap.securevault.security;
 
 import com.roadmap.securevault.config.properties.CookieProperties;
+import com.roadmap.securevault.config.properties.OAuth2Properties;
 import com.roadmap.securevault.entity.User;
 import com.roadmap.securevault.service.helper.AccessJwtService;
 import com.roadmap.securevault.service.helper.CookieService;
@@ -20,6 +21,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
     private final CookieProperties cookieProperties;
+    private final OAuth2Properties oauth2Properties;
     private final CookieService cookieService;
     private final AccessJwtService accessJwtService;
     private final RefreshJwtService refreshJwtService;
@@ -38,7 +40,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
         if (linkingUsername != null) {
             // linking flow — user already has tokens, just return 200
-            response.setStatus(HttpServletResponse.SC_OK);
+            response.sendRedirect(oauth2Properties.redirectUrl());
         } else {
             CustomOAuth2User principal = (CustomOAuth2User) authentication.getPrincipal();
             User user = principal.getUser();
@@ -48,7 +50,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
                     accessJwtService.generateAccessToken(user),
                     refreshJwtService.generateRefreshToken(user).getId().toString()
             );
-            response.setStatus(HttpServletResponse.SC_OK);
+            response.sendRedirect(oauth2Properties.redirectUrl());
         }
     }
 }
