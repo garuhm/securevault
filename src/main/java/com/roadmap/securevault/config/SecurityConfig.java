@@ -4,6 +4,7 @@ import com.roadmap.securevault.config.properties.CookieProperties;
 import com.roadmap.securevault.filter.JwtFilter;
 import com.roadmap.securevault.service.helper.AccessJwtService;
 import com.roadmap.securevault.service.helper.CookieService;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -37,9 +38,23 @@ public class SecurityConfig {
                 .authorizeHttpRequests(
                         auth -> auth
                                 .requestMatchers("/auth/**").permitAll()
+                                .requestMatchers("/oauth2/**").permitAll()
+                                .requestMatchers("/login/oauth2/**").permitAll()
+//                                .requestMatchers("/api/v1/me").permitAll()
                                 .anyRequest().authenticated())
-                .authenticationProvider(authenticationProvider());
-
+                .authenticationProvider(authenticationProvider())
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.setContentType("application/json");
+                            response.getWriter().write("{\"error\": \"Unauthorized\"}");
+                        })
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            response.setContentType("application/json");
+                            response.getWriter().write("{\"error\": \"Forbidden\"}");
+                        })
+                )
         return http.build();
     }
 
