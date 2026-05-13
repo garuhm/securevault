@@ -91,5 +91,6 @@ public class RefreshJwtService {
     }
 
     public record JwtRotationResult(String accessToken, UUID refreshToken, User user) {
+
     }
 }
