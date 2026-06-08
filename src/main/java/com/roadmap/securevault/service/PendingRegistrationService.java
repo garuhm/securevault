@@ -1,39 +1,44 @@
 package com.roadmap.securevault.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.roadmap.securevault.config.properties.RedisProperties;
+import com.roadmap.securevault.config.properties.CookieProperties;
+import com.roadmap.securevault.dto.PendingRegistrationAutofillInfo;
 import com.roadmap.securevault.dto.PendingRegistrationData;
+import com.roadmap.securevault.exception.OAuth2PendingRegistrationException;
+import com.roadmap.securevault.service.helper.CookieService;
+import com.roadmap.securevault.service.helper.PendingRegJwtService;
+import com.roadmap.securevault.service.helper.PendingRegistrationRedisService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-import tools.jackson.databind.ObjectMapper;
 
-import java.time.Duration;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class PendingRegistrationService {
+    private final CookieProperties cookieProperties;
+    private final PendingRegistrationRedisService pendingRegistrationRedisService;
+    private final PendingRegJwtService pendingRegJwtService;
+    private final CookieService cookieService;
 
-    private final RedisTemplate<String, String> redisTemplate;
-    private final ObjectMapper objectMapper;
-    private final RedisProperties redisProperties;
+    public PendingRegistrationAutofillInfo getPendingRegistration(HttpServletRequest request) {
+        String pendingRegJwtToken =
+                Optional.ofNullable(
+                        cookieService.extractTokenFromCookie(request, cookieProperties.oauth2PendingRegRequestCookieName()))
+                        .orElseThrow(() -> new OAuth2PendingRegistrationException("No pending registration cookie found"));
 
-    public void save(String tokenId, PendingRegistrationData data) throws JsonProcessingException {
-        String key = redisProperties.prefix() + tokenId;
-        String value = objectMapper.writeValueAsString(data);
+        try {
+            UUID pendingRegId = UUID.fromString(pendingRegJwtService.extractJti(pendingRegJwtToken));
 
-        redisTemplate.opsForValue().set(key, value, Duration.ofMinutes(redisProperties.ttl()));
-    }
+            PendingRegistrationData pendingRegistrationData = pendingRegistrationRedisService.find(pendingRegId.toString())
+                    .orElseThrow(() -> new OAuth2PendingRegistrationException("Pending registration with id " + pendingRegId + " not found"));
 
-    public Optional<PendingRegistrationData> find(String tokenId) throws JsonProcessingException {
-        String value = redisTemplate.opsForValue().get(redisProperties.prefix() + tokenId);
-        if (value == null) return Optional.empty();
-        
-        return Optional.of(objectMapper.readValue(value, PendingRegistrationData.class));
-    }
+            return new PendingRegistrationAutofillInfo(pendingRegistrationData.email());
+        }
 
-    public void delete(String tokenId) {
-        redisTemplate.delete(redisProperties.prefix() + tokenId);
+        catch (IllegalArgumentException e) {
+            throw new OAuth2PendingRegistrationException("Invalid JWT token format");
+        }
     }
 }
