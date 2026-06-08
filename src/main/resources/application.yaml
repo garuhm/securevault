@@ -42,6 +42,8 @@ security:
     refresh-token-cookie-path: /auth/refresh
     oauth2-request-cookie-name: securevault-oauth2-request
     oauth2-request-cookie-max-age: 180
+    oauth2-pending-reg-request-cookie-name: securevault-oauth2-pending-reg-request
+    oauth2-pending-reg-request-cookie-path: /auth/oauth2/pending-registration
     oauth2-linking-request-cookie-name: securevault-oauth2-linking-request
   oauth2:
     success-redirect-url: http://localhost:3000/me.html

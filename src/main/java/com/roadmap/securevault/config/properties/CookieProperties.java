@@ -9,6 +9,8 @@ public record CookieProperties(
         String refreshTokenCookiePath,
         String oauth2RequestCookieName,
         int oauth2RequestCookieMaxAge,
+        String oauth2PendingRegRequestCookieName,
+        String oauth2PendingRegRequestCookiePath,
         String oauth2LinkingRequestCookieName
 ) {
 }
