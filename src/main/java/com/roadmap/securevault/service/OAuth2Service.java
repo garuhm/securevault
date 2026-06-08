@@ -1,7 +1,7 @@
 package com.roadmap.securevault.service;
 
 import com.roadmap.securevault.config.properties.CookieProperties;
-import com.roadmap.securevault.config.properties.Re;
+import com.roadmap.securevault.config.properties.OAuth2Properties;
 import com.roadmap.securevault.entity.OAuth2Link;
 import com.roadmap.securevault.entity.Role;
 import com.roadmap.securevault.entity.User;
@@ -42,7 +42,7 @@ public class OAuth2Service implements OAuth2UserService<OAuth2UserRequest, OAuth
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
 
-    private final Re oauth2Properties;
+    private final OAuth2Properties oauth2Properties;
     private final CookieProperties cookieProperties;
 
     private final CookieService cookieService;
