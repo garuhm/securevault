@@ -5,7 +5,7 @@ import com.roadmap.securevault.config.properties.OAuth2Properties;
 import com.roadmap.securevault.config.properties.RedisProperties;
 import com.roadmap.securevault.dto.PendingRegistrationData;
 import com.roadmap.securevault.entity.User;
-import com.roadmap.securevault.service.PendingRegistrationService;
+import com.roadmap.securevault.service.helper.PendingRegistrationRedisService;
 import com.roadmap.securevault.service.helper.AccessJwtService;
 import com.roadmap.securevault.service.helper.CookieService;
 import com.roadmap.securevault.service.helper.PendingRegJwtService;
@@ -33,7 +33,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
     private final AccessJwtService accessJwtService;
     private final RefreshJwtService refreshJwtService;
     private final PendingRegJwtService pendingRegJwtService;
-    private final PendingRegistrationService pendingRegistrationService;
+    private final PendingRegistrationRedisService pendingRegistrationRedisService;
 
     @Override
     @Transactional
@@ -63,7 +63,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
                         pendingUser.getProviderUserId()
                 );
                 // create redis entry
-                pendingRegistrationService.save(pendingRegId.toString(), data);
+                pendingRegistrationRedisService.save(pendingRegId.toString(), data);
 
                 String pendingRegJwt = pendingRegJwtService.generatePendingRegistrationToken(pendingRegId);
                 cookieService.addCookie(
