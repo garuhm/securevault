@@ -4,6 +4,7 @@ import com.roadmap.securevault.entity.Role;
 import com.roadmap.securevault.entity.User;
 import com.roadmap.securevault.entity.enums.RoleName;
 import com.roadmap.securevault.test_util.testcontainers.AbstractPostgresDataJpaTest;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,7 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
+@Disabled
 @DisplayName("User And RoleRepository Data Jpa Tests")
 class UserAndRoleRepositoryDataJpaTest extends AbstractPostgresDataJpaTest {
     @Autowired

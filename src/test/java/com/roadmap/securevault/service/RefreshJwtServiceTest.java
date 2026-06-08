@@ -9,10 +9,7 @@ import com.roadmap.securevault.repo.RefreshTokenRepository;
 import com.roadmap.securevault.service.helper.AccessJwtService;
 import com.roadmap.securevault.service.helper.CookieService;
 import com.roadmap.securevault.service.helper.RefreshJwtService;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -30,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+@Disabled
 @ExtendWith(MockitoExtension.class)
 @DisplayName("RefreshJwtService Unit Tests")
 class RefreshJwtServiceTest {

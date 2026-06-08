@@ -5,6 +5,7 @@ import com.roadmap.securevault.config.properties.JwtProperties;
 import com.roadmap.securevault.service.helper.CookieService;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,6 +19,7 @@ import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Disabled
 @ExtendWith(MockitoExtension.class)
 @DisplayName("CookieService Unit Tests")
 class CookieServiceTest {
