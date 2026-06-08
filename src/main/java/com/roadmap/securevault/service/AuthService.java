@@ -56,7 +56,7 @@ public class AuthService {
                 .findByName(RoleName.ROLE_USER)
                 .orElseThrow(() -> new EntityNotFoundException("Role not found")));
 
-        User savedUser = userRepository.saveAndFlush(user);
+        User savedUser = userRepository.save(user);
         cookieService.addTokenCookies(
                 response,
                 accessJwtService.generateAccessToken(savedUser),

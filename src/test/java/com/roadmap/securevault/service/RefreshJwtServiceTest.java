@@ -63,6 +63,8 @@ class RefreshJwtServiceTest {
             "/auth/refresh",
             "securevault-oauth2-request",
             180,
+            "securevault-oauth2-pending-reg-request",
+            "/oauth2/pending-registration",
             "securevault-oauth2-linking-request"
 
     );
