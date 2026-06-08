@@ -1,7 +1,7 @@
 package com.roadmap.securevault.service;
 
 import com.roadmap.securevault.config.properties.CookieProperties;
-import com.roadmap.securevault.config.properties.OAuth2Properties;
+import com.roadmap.securevault.config.properties.Re;
 import com.roadmap.securevault.entity.OAuth2Link;
 import com.roadmap.securevault.entity.Role;
 import com.roadmap.securevault.entity.User;
@@ -24,7 +24,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
-import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,7 +42,7 @@ public class OAuth2Service implements OAuth2UserService<OAuth2UserRequest, OAuth
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
 
-    private final OAuth2Properties oauth2Properties;
+    private final Re oauth2Properties;
     private final CookieProperties cookieProperties;
 
     private final CookieService cookieService;

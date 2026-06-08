@@ -2,6 +2,11 @@ spring:
   application:
     name: securevault
 
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
   datasource:
     url: jdbc:postgresql://localhost:5000/securevault
     username: securevault
@@ -22,6 +27,10 @@ spring:
               - email
               - profile
 
+data:
+  redis:
+    ttl: 10
+    prefix: 'pending_oauth2:'
 security:
   jwt:
     secret: vTpTSehgudwctoSkCRB3HCdrW8NJBRA1s02pf7TXh9E

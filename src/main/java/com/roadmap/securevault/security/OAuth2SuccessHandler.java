@@ -1,7 +1,7 @@
 package com.roadmap.securevault.security;
 
 import com.roadmap.securevault.config.properties.CookieProperties;
-import com.roadmap.securevault.config.properties.OAuth2Properties;
+import com.roadmap.securevault.config.properties.Re;
 import com.roadmap.securevault.entity.User;
 import com.roadmap.securevault.service.helper.AccessJwtService;
 import com.roadmap.securevault.service.helper.CookieService;
@@ -21,7 +21,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
     private final CookieProperties cookieProperties;
-    private final OAuth2Properties oauth2Properties;
+    private final Re oauth2Properties;
     private final CookieService cookieService;
     private final AccessJwtService accessJwtService;
     private final RefreshJwtService refreshJwtService;
