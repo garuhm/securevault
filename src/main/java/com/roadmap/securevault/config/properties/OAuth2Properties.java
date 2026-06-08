@@ -8,6 +8,7 @@ import java.util.Map;
 public record OAuth2Properties(
         Map<String, String> providerEmailAttributes,
         Map<String, String> providerIdAttributes,
-        String redirectUrl
+        String successRedirectUrl,
+        String pendingRegRedirectUrl
 ) {
 }
