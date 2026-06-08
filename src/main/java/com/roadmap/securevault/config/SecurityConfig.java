@@ -3,6 +3,7 @@ package com.roadmap.securevault.config;
 import com.roadmap.securevault.config.properties.CookieProperties;
 import com.roadmap.securevault.filter.JwtFilter;
 import com.roadmap.securevault.security.CookieAuthorizationRequestRepository;
+import com.roadmap.securevault.security.OAuth2FailureHandler;
 import com.roadmap.securevault.security.OAuth2SuccessHandler;
 import com.roadmap.securevault.service.helper.AccessJwtService;
 import com.roadmap.securevault.service.helper.CookieService;
@@ -41,6 +42,7 @@ public class SecurityConfig {
     private final CookieProperties cookieProperties;
     private final OAuth2UserService<OAuth2UserRequest, OAuth2User> oAuth2UserService;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
+    private final OAuth2FailureHandler oAuth2FailureHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -79,11 +81,7 @@ public class SecurityConfig {
                                         .userService(oAuth2UserService)
                                 )
                                 .successHandler(oAuth2SuccessHandler)
-                                .failureHandler((request, response, exception) -> {
-                                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                                    response.setContentType("application/json");
-                                    response.getWriter().write("{\"error\": \"OAuth2 authentication failed\"}");
-                                })
+                                .failureHandler(oAuth2FailureHandler)
                 );
         return http.build();
     }

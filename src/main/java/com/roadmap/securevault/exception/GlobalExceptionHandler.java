@@ -17,8 +17,7 @@ import java.util.stream.Collectors;
 @ControllerAdvice
 public class GlobalExceptionHandler {
     @ExceptionHandler(value = {
-            CredentialsTakenException.class,
-            OAuth2AuthenticationLinkException.class})
+            CredentialsTakenException.class})
     public ResponseEntity<String> handleConflictException(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
     }
@@ -55,10 +54,5 @@ public class GlobalExceptionHandler {
                                 (existing, duplicate) -> existing));
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
-    }
-
-    @ExceptionHandler(value = OAuth2CredentialsExtractionException.class)
-    public ResponseEntity<String> handleOAuth2CredentialsExtractionException(RuntimeException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(ex.getMessage());
     }
 }

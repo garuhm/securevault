@@ -14,6 +14,7 @@ import com.roadmap.securevault.repo.OAuth2LinkRepository;
 import com.roadmap.securevault.repo.RoleRepository;
 import com.roadmap.securevault.repo.UserRepository;
 import com.roadmap.securevault.security.CustomOAuth2User;
+import com.roadmap.securevault.security.PendingOAuth2User;
 import com.roadmap.securevault.service.helper.CookieService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -30,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -70,6 +72,7 @@ public class OAuth2Service implements OAuth2UserService<OAuth2UserRequest, OAuth
             user = handleOAuth2Login(provider, providerUserId, email);
         }
 
+        if(user == null) return new PendingOAuth2User(oAuth2User, email, provider, providerUserId);
         return new CustomOAuth2User(oAuth2User, user);
     }
 
@@ -143,44 +146,21 @@ public class OAuth2Service implements OAuth2UserService<OAuth2UserRequest, OAuth
     // oauth2 login, new user and existing
     private User handleOAuth2Login(String provider, String providerUserId,
                                    String email) {
-        // returning OAuth2 user — link already exists
+        // if user already exists on our end, return user obj
+        // else, return null bc registration needs to occur
         return oAuth2LinkRepository.findByProviderAndProviderUserId(provider, providerUserId)
                 .map(OAuth2Link::getUser)
                 .orElseGet(() -> {
-                    User user = userRepository.findByEmail(email)
-                            .orElseGet(() -> createNewUser(email));
-
-                    if (oAuth2LinkRepository.existsByProviderAndUserId(provider, user.getId())) {
+                    // if user with specific provider and provider user id does not exist yet
+                    // but the email on the provider account is already in use by an account
+                    // in this app, throw error
+                    if(userRepository.existsByEmail(email)) {
                         throw new OAuth2AuthenticationLinkException(
-                                "A different " + provider + " account is already linked to this account" // 409
-                        );
+                                "The email given by the provider account is already in use");
                     }
-
-
-                    oAuth2LinkRepository.saveAndFlush(OAuth2Link.builder()
-                            .user(user)
-                            .provider(provider)
-                            .providerUserId(providerUserId)
-                            .email(email)
-                            .build());
-                    return user;
+                    // else return null to signal new registration
+                    return null;
                 });
-    }
-
-    private User createNewUser(String email) {
-        String baseUsername = email.split("@")[0];
-        String username = userRepository.existsByUsername(baseUsername)
-                ? baseUsername + "_" + UUID.randomUUID().toString().substring(0, 5)
-                : baseUsername;
-
-        Role userRole = roleRepository.findByName(RoleName.ROLE_USER)
-                .orElseThrow(() -> new EntityNotFoundException("Role not found"));
-        User user = User.builder()
-                .username(username)
-                .email(email)
-                .roles(Set.of(userRole))
-                .build();
-        return userRepository.saveAndFlush(user);
     }
 
     private String extractProviderUserId(OAuth2User oAuth2User, String provider) {
