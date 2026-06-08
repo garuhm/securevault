@@ -27,7 +27,8 @@ public class GlobalExceptionHandler {
             BadCredentialsException.class,
             InvalidRefreshTokenException.class,
             InvalidCookieException.class,
-            OAuth2ProviderNotFoundException.class})
+            OAuth2ProviderNotFoundException.class,
+            OAuth2PendingRegistrationException.class})
     public ResponseEntity<String> handleUnauthorizedException(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
     }
