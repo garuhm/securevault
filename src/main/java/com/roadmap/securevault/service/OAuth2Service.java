@@ -3,20 +3,16 @@ package com.roadmap.securevault.service;
 import com.roadmap.securevault.config.properties.CookieProperties;
 import com.roadmap.securevault.config.properties.OAuth2Properties;
 import com.roadmap.securevault.entity.OAuth2Link;
-import com.roadmap.securevault.entity.Role;
 import com.roadmap.securevault.entity.User;
-import com.roadmap.securevault.entity.enums.RoleName;
 import com.roadmap.securevault.exception.OAuth2AuthenticationLinkException;
 import com.roadmap.securevault.exception.OAuth2AuthenticationUnlinkException;
 import com.roadmap.securevault.exception.OAuth2CredentialsExtractionException;
 import com.roadmap.securevault.exception.OAuth2ProviderNotFoundException;
 import com.roadmap.securevault.repo.OAuth2LinkRepository;
-import com.roadmap.securevault.repo.RoleRepository;
 import com.roadmap.securevault.repo.UserRepository;
 import com.roadmap.securevault.security.CustomOAuth2User;
 import com.roadmap.securevault.security.PendingOAuth2User;
 import com.roadmap.securevault.service.helper.CookieService;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -31,10 +27,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-
 @Service
 @RequiredArgsConstructor
 public class OAuth2Service implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
@@ -42,7 +34,6 @@ public class OAuth2Service implements OAuth2UserService<OAuth2UserRequest, OAuth
     private final OAuth2LinkRepository oAuth2LinkRepository;
 
     private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
 
     private final OAuth2Properties oauth2Properties;
     private final CookieProperties cookieProperties;
