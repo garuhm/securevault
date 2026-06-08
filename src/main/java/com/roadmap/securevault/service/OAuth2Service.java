@@ -105,11 +105,11 @@ public class OAuth2Service implements OAuth2UserService<OAuth2UserRequest, OAuth
         oAuth2LinkRepository.deleteByProviderAndUserId(provider, user.getId());
     }
 
-    // links for existing accts when already authenticated
+    // links for existing accounts and completed pending registrations
     private User createNewLink(String linkingUsername, String provider,
                                      String providerUserId, String email) {
         User user = userRepository.findByUsername(linkingUsername)
-                .orElseThrow(() -> new UsernameNotFoundException("SecureVault user not found")); // 404
+                .orElseThrow(() -> new UsernameNotFoundException("Platform user not found")); // 404
 
         // check this provider account isn't already linked to someone else
         if (oAuth2LinkRepository.existsByProviderAndProviderUserId(provider, providerUserId)) {
@@ -132,6 +132,19 @@ public class OAuth2Service implements OAuth2UserService<OAuth2UserRequest, OAuth
                 .email(email)
                 .build());
         return user;
+    }
+
+    // for pending regs
+    public void createNewLink(User user,
+                              String provider,
+                              String providerUserId,
+                              String email) {
+        oAuth2LinkRepository.save(OAuth2Link.builder()
+                .user(user)
+                .provider(provider)
+                .providerUserId(providerUserId)
+                .email(email)
+                .build());
     }
 
     // oauth2 login, new user and existing

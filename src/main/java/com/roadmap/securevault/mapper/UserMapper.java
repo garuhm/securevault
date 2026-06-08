@@ -1,6 +1,8 @@
 package com.roadmap.securevault.mapper;
 
 import com.roadmap.securevault.dto.MeResponse;
+import com.roadmap.securevault.dto.PendingRegistrationData;
+import com.roadmap.securevault.dto.PendingRegistrationRequest;
 import com.roadmap.securevault.dto.RegisterRequest;
 import com.roadmap.securevault.entity.User;
 
@@ -11,6 +13,14 @@ public class UserMapper {
                 .username(request.username())
                 .email(request.email())
                 .password(request.password())
+                .build();
+    }
+
+    public static User toEntity(PendingRegistrationRequest request,
+                                PendingRegistrationData pendingRegistrationData) {
+        return User.builder()
+                .username(request.username())
+                .email(pendingRegistrationData.email())
                 .build();
     }
 

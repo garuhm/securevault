@@ -2,6 +2,8 @@ package com.roadmap.securevault.service;
 
 import com.roadmap.securevault.config.properties.CookieProperties;
 import com.roadmap.securevault.dto.LoginRequest;
+import com.roadmap.securevault.dto.PendingRegistrationData;
+import com.roadmap.securevault.dto.PendingRegistrationRequest;
 import com.roadmap.securevault.dto.RegisterRequest;
 import com.roadmap.securevault.entity.User;
 import com.roadmap.securevault.entity.enums.RoleName;
@@ -63,13 +65,38 @@ public class AuthService {
     }
 
     @Transactional
+    public User register(PendingRegistrationRequest credentials,
+                         PendingRegistrationData pendingRegistrationData,
+                         HttpServletResponse response) {
+        if(userRepository.existsByUsername(credentials.username())) {
+            throw new CredentialsTakenException("Username already exists");
+        }
+        if(userRepository.existsByEmail(pendingRegistrationData.email())) {
+            throw new CredentialsTakenException("Email already exists");
+        }
+
+        User user = UserMapper.toEntity(credentials, pendingRegistrationData);
+        user.getRoles().add(roleRepository
+                .findByName(RoleName.ROLE_USER)
+                .orElseThrow(() -> new EntityNotFoundException("Role not found")));
+
+        User savedUser = userRepository.save(user);
+        cookieService.addTokenCookies(
+                response,
+                accessJwtService.generateAccessToken(savedUser),
+                refreshJwtService.generateRefreshToken(savedUser).getId().toString()
+        );
+        return savedUser;
+    }
+
+    @Transactional
     public void login(LoginRequest credentials,
                                        HttpServletResponse response) {
         User user = (User) userService.loadUserByUsername(credentials.username());
 
         if (user.getPassword() == null) {
             throw new BadCredentialsException(
-                    "This account uses " + user.getOAuth2Links().iterator().next().getProvider() + " OAuth2 login"
+                    "This account uses OAuth2 login"
             );
         }
 
