@@ -1,10 +1,12 @@
 package com.roadmap.securevault.controller;
 
 import com.roadmap.securevault.dto.PendingRegistrationAutofillInfo;
+import com.roadmap.securevault.dto.PendingRegistrationRequest;
 import com.roadmap.securevault.service.OAuth2Service;
 import com.roadmap.securevault.service.PendingRegistrationService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,7 +37,15 @@ public class OAuth2Controller {
     }
 
     @GetMapping("/pending-registration")
-    public ResponseEntity<PendingRegistrationAutofillInfo> pendingRegistration(HttpServletRequest request) {
+    public ResponseEntity<PendingRegistrationAutofillInfo> getPendingRegistrationAutofill(HttpServletRequest request) {
         return ResponseEntity.ok(pendingRegistrationService.getPendingRegistration(request));
+    }
+
+    @PostMapping("/pending-registration")
+    public ResponseEntity<Void> completePendingRegistration(@Valid @RequestBody PendingRegistrationRequest pendingRegRequest,
+                                                            HttpServletRequest request,
+                                                            HttpServletResponse response) {
+        pendingRegistrationService.completePendingRegistration(pendingRegRequest, request, response);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 }
