@@ -15,7 +15,7 @@ import org.testcontainers.utility.DockerImageName;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public abstract class AbstractTestContainersUtilizingTest {
     private static final DockerImageName POSTGRES_IMAGE =
-            DockerImageName.parse("postgres:18.3").asCompatibleSubstituteFor("postgres");
+            DockerImageName.parse("postgres:18").asCompatibleSubstituteFor("postgres");
 
     @Container
     protected static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer(POSTGRES_IMAGE);
