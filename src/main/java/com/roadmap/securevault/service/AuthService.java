@@ -128,11 +128,7 @@ public class AuthService {
 
     @Transactional
     public void logoutAllSessions(HttpServletResponse response) {
-        User user = (User) userService.loadUserByUsername(
-                        SecurityContextHolder
-                                .getContext()
-                                .getAuthentication()
-                                .getName());
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         refreshJwtService.revokeAllTokensForUser(user);
         cookieService.clearTokenCookies(response);
     }
