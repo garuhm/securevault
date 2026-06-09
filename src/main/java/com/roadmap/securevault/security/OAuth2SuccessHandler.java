@@ -69,8 +69,8 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
                 cookieService.addCookie(
                         response,
                         cookieProperties.oauth2PendingRegRequestCookieName(),
-                        cookieProperties.oauth2PendingRegRequestCookiePath(),
                         pendingRegJwt,
+                        cookieProperties.oauth2PendingRegRequestCookiePath(),
                         redisProperties.ttl() * 60
                 );
 
