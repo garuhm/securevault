@@ -2,6 +2,7 @@ package com.roadmap.securevault.security;
 
 import com.roadmap.securevault.exception.OAuth2AuthenticationLinkException;
 import com.roadmap.securevault.exception.OAuth2CredentialsExtractionException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +12,8 @@ import org.springframework.stereotype.Component;
 import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @Component
 @RequiredArgsConstructor
@@ -25,15 +28,19 @@ public class OAuth2FailureHandler implements AuthenticationFailureHandler {
 
         Throwable cause = exception.getCause() != null ? exception.getCause() : exception;
 
-        int status = switch (cause) {
-            case OAuth2AuthenticationLinkException e -> HttpServletResponse.SC_CONFLICT;
-            case OAuth2CredentialsExtractionException e -> HttpServletResponse.SC_BAD_GATEWAY;
-            
-            default -> HttpServletResponse.SC_UNAUTHORIZED;
+        String message = switch (cause) {
+            case OAuth2AuthenticationLinkException e -> e.getMessage();
+            case OAuth2CredentialsExtractionException e -> "Could not retrieve account information from the provider.";
+            default -> "Authentication failed. Please try again.";
         };
 
-        response.setStatus(status);
-        response.setContentType("application/json");
-        response.getWriter().write(objectMapper.writeValueAsString(cause.getMessage()));
+        // store in a short-lived cookie the frontend can read once
+        Cookie errorCookie = new Cookie("oauth2_error", URLEncoder.encode(message, StandardCharsets.UTF_8));
+        errorCookie.setPath("/");
+        errorCookie.setMaxAge(30);
+        errorCookie.setHttpOnly(false); // must be readable by JS
+        response.addCookie(errorCookie);
+
+        response.sendRedirect("http://localhost:3000/login.html");
     }
 }

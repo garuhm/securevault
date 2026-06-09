@@ -119,18 +119,10 @@ public class AuthService {
 
     @Transactional
     public void logout(HttpServletRequest request, HttpServletResponse response) {
-        User user = (User) userService.loadUserByUsername(
-                        SecurityContextHolder
-                                .getContext()
-                                .getAuthentication()
-                                .getName());
-
-        refreshJwtService.revokeToken(
-                UUID.fromString(
-                        cookieService
-                                .extractTokenFromCookie(
-                                        request, cookieProperties
-                                                .refreshTokenCookieName())));
+        String refreshToken = cookieService.extractTokenFromCookie(request, cookieProperties.refreshTokenCookieName());
+        if (refreshToken != null) {
+            refreshJwtService.revokeToken(UUID.fromString(refreshToken));
+        }
         cookieService.clearTokenCookies(response);
     }
 
