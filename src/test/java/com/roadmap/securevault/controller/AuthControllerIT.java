@@ -92,7 +92,7 @@ class AuthControllerIT extends AbstractPostgresIT {
             assertThat(userRepository.findByUsername(request.username()).get().getRoles())
                     .extracting(Role::getName)
                     .contains(RoleName.ROLE_USER);
-            assertThat(userRepository.findByUsername(request.username()).get().getRefreshTokens().size()).isEqualTo(1);
+            assertThat(refreshTokenRepository.findAllByUserAndRevokedFalse(userRepository.findByUsername(request.username()).get()).size()).isEqualTo(1);
             assertThat(refreshTokenRepository.findAll().size()).isEqualTo(1);
             assertThat(refreshTokenRepository
                     .findById(
@@ -204,7 +204,6 @@ class AuthControllerIT extends AbstractPostgresIT {
 
             User user = userRepository.findByUsername(register.username()).get();
 
-            assertThat(user.getRefreshTokens().size()).isEqualTo(2);
             assertThat(refreshTokenRepository.findAll().size()).isEqualTo(2);
             assertThat(refreshTokenRepository.findAllByUserAndRevokedFalse(user).size()).isEqualTo(2);
             assertThat(cookieExists(result.getResponse(), cookieProperties.accessTokenCookieName())).isTrue();
@@ -240,7 +239,6 @@ class AuthControllerIT extends AbstractPostgresIT {
 
             User user = userRepository.findByUsername(register.username()).get();
 
-            assertThat(user.getRefreshTokens().size()).isEqualTo(1);
             assertThat(refreshTokenRepository.findAll().size()).isEqualTo(1);
             assertThat(refreshTokenRepository.findAllByUserAndRevokedFalse(user).size()).isEqualTo(1);
         }

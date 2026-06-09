@@ -54,7 +54,7 @@ public class AuthService {
                 .findByName(RoleName.ROLE_USER)
                 .orElseThrow(() -> new EntityNotFoundException("Role not found")));
 
-        User savedUser = userRepository.saveAndFlush(user);
+        User savedUser = userRepository.save(user);
         cookieService.addTokenCookies(
                 response,
                 accessJwtService.generateAccessToken(savedUser),
@@ -92,28 +92,16 @@ public class AuthService {
 
     @Transactional
     public void logout(HttpServletRequest request, HttpServletResponse response) {
-        User user = (User) userService.loadUserByUsername(
-                        SecurityContextHolder
-                                .getContext()
-                                .getAuthentication()
-                                .getName());
-
-        refreshJwtService.revokeToken(
-                UUID.fromString(
-                        cookieService
-                                .extractTokenFromCookie(
-                                        request, cookieProperties
-                                                .refreshTokenCookieName())));
+        String refreshToken = cookieService.extractTokenFromCookie(request, cookieProperties.refreshTokenCookieName());
+        if (refreshToken != null) {
+            refreshJwtService.revokeToken(UUID.fromString(refreshToken));
+        }
         cookieService.clearTokenCookies(response);
     }
 
     @Transactional
     public void logoutAllSessions(HttpServletResponse response) {
-        User user = (User) userService.loadUserByUsername(
-                        SecurityContextHolder
-                                .getContext()
-                                .getAuthentication()
-                                .getName());
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         refreshJwtService.revokeAllTokensForUser(user);
         cookieService.clearTokenCookies(response);
     }
