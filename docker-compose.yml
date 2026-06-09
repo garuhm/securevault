@@ -11,5 +11,14 @@ services:
     volumes:
       - db:/var/lib/postgresql
 
+  securevault-redis:
+    image: redis:7-alpine
+    container_name: securevault-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis:/data
+
 volumes:
   db:
+  redis:
