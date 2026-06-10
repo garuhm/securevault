@@ -31,3 +31,8 @@ security:
     access-token-cookie-name: securevault-access-token
     refresh-token-cookie-name: securevault-refresh-token
     refresh-token-cookie-path: /platform/auth/refresh
+  redis:
+    bootstrap-token-ttl-hours: 24
+    bootstrap-token-prefix: 'bootstrap:'
+    invite-token-ttl-hours: 72
+    invite-token-prefix: 'invite:'
