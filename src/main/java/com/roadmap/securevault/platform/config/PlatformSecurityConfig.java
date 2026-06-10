@@ -34,6 +34,7 @@ public class PlatformSecurityConfig extends BaseSecurityConfig {
         applyCommonSecurity(http, platformJwtFilter)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/platform/auth/login").permitAll()
+                        .requestMatchers("/platform/tenants/register").permitAll()
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(platformAuthProvider());
