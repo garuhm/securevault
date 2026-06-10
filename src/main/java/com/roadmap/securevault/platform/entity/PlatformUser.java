@@ -16,7 +16,7 @@ import java.util.Set;
 @Entity
 @Table(name = "platform_users", schema = "public")
 
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @SuperBuilder
+@Getter @Setter @NoArgsConstructor @SuperBuilder
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = true)
 public class PlatformUser extends BaseUser implements UserDetails {
 

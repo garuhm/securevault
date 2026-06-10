@@ -10,7 +10,7 @@ import lombok.experimental.SuperBuilder;
 
 @Entity
 @Table(name = "platform_refresh_tokens", schema = "public")
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @SuperBuilder
+@Getter @Setter @NoArgsConstructor @SuperBuilder
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = true)
 public class PlatformRefreshToken extends BaseRefreshToken<PlatformUser> {
 

@@ -9,7 +9,7 @@ import java.util.Date;
 import java.util.UUID;
 
 @MappedSuperclass
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @SuperBuilder
+@Getter @Setter @NoArgsConstructor @SuperBuilder
 public abstract class BaseRefreshToken<U extends BaseUser & UserDetails> {
 
     @Id
