@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/platform")
 @ApiVersion("v1")
+@RequestMapping("/platform")
 public class PlatformMeController extends BaseMeController<PlatformUser, MeResponse> {
 
     @Override

@@ -1,5 +1,6 @@
 package com.roadmap.securevault.platform.controller;
 
+import com.roadmap.securevault.common.annotation.ApiVersion;
 import com.roadmap.securevault.common.controller.BaseAuthController;
 import com.roadmap.securevault.platform.dto.PlatformRegisterRequest;
 import com.roadmap.securevault.platform.entity.PlatformUser;
@@ -13,6 +14,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@ApiVersion("v1")
 @RequestMapping("/platform/auth")
 public class PlatformAuthController extends BaseAuthController<PlatformUser, PlatformUserRepository> {
 
