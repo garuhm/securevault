@@ -1,84 +1,62 @@
 package com.roadmap.securevault.common.service;
 
 import com.roadmap.securevault.common.config.properties.CookieProperties;
-import com.roadmap.securevault.dto.LoginRequest;
-import com.roadmap.securevault.dto.RegisterRequest;
-import com.roadmap.securevault.entity.User;
-import com.roadmap.securevault.entity.enums.RoleName;
-import com.roadmap.securevault.common.exception.CredentialsTakenException;
-import com.roadmap.securevault.mapper.UserMapper;
-import com.roadmap.securevault.repo.RoleRepository;
-import com.roadmap.securevault.repo.UserRepository;
-import com.roadmap.securevault.service.UserService;
-import jakarta.persistence.EntityNotFoundException;
+import com.roadmap.securevault.common.dto.JwtRotationResult;
+import com.roadmap.securevault.common.entity.BaseUser;
+import com.roadmap.securevault.common.repo.BaseUserRepository;
+import com.roadmap.securevault.common.dto.LoginRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
-@Service
-@RequiredArgsConstructor
-public class BaseAuthService {
-    private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
-    private final PasswordEncoder passwordEncoder;
+public abstract class BaseAuthService<U extends BaseUser & UserDetails, R extends BaseUserRepository<U>> {
 
-    private final UserService userService;
-    private final AccessJwtService accessJwtService;
-    private final RefreshJwtService refreshJwtService;
-    private final CookieService cookieService;
+    protected final R userRepository;
+    protected final PasswordEncoder passwordEncoder;
+    protected final BaseUserService<U, R> userService;
+    protected final AccessJwtService accessJwtService;
+    protected final BaseRefreshJwtService<U, ?> baseRefreshJwtService;
+    protected final CookieService cookieService;
+    protected final CookieProperties cookieProperties;
 
-    private final CookieProperties cookieProperties;
-
-    @Transactional
-    public void register(RegisterRequest credentials,
-                         HttpServletResponse response) {
-        if(userRepository.existsByUsername(credentials.username())) {
-            throw new CredentialsTakenException("Username already exists");
-        }
-        if(userRepository.existsByEmail(credentials.email())) {
-            throw new CredentialsTakenException("Email already exists");
-        }
-
-        User user = UserMapper.toEntity(credentials);
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.getRoles().add(roleRepository
-                .findByName(RoleName.ROLE_USER)
-                .orElseThrow(() -> new EntityNotFoundException("Role not found")));
-
-        User savedUser = userRepository.save(user);
-        cookieService.addTokenCookies(
-                response,
-                accessJwtService.generateAccessToken(savedUser),
-                refreshJwtService.generateRefreshToken(savedUser).getId().toString()
-        );
+    protected BaseAuthService(R userRepository,
+                              PasswordEncoder passwordEncoder,
+                              BaseUserService<U, R> userDetailsService,
+                              AccessJwtService accessJwtService,
+                              BaseRefreshJwtService<U, ?> baseRefreshJwtService,
+                              CookieService cookieService,
+                              CookieProperties cookieProperties) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.userService = userDetailsService;
+        this.accessJwtService = accessJwtService;
+        this.baseRefreshJwtService = baseRefreshJwtService;
+        this.cookieService = cookieService;
+        this.cookieProperties = cookieProperties;
     }
 
     @Transactional
-    public void login(LoginRequest credentials,
-                                       HttpServletResponse response) {
-        User user = (User) userService.loadUserByUsername(credentials.username());
-
+    public void login(LoginRequest credentials, HttpServletResponse response) {
+        U user = (U) userService.loadUserByUsername(credentials.username());
         if (!passwordEncoder.matches(credentials.password(), user.getPassword())) {
             throw new BadCredentialsException("Username or password is incorrect.");
         }
-
         cookieService.addTokenCookies(
                 response,
                 accessJwtService.generateAccessToken(user),
-                refreshJwtService.generateRefreshToken(user).getId().toString()
+                baseRefreshJwtService.generateRefreshToken(user).getId().toString()
         );
     }
 
     @Transactional
     public void refreshToken(HttpServletRequest request, HttpServletResponse response) {
-        RefreshJwtService.JwtRotationResult result = refreshJwtService.validateAndRotate(request);
+        JwtRotationResult<U> result = baseRefreshJwtService.validateAndRotate(request);
         cookieService.addTokenCookies(response, result.accessToken(), result.refreshToken().toString());
     }
 
@@ -86,15 +64,15 @@ public class BaseAuthService {
     public void logout(HttpServletRequest request, HttpServletResponse response) {
         String refreshToken = cookieService.extractTokenFromCookie(request, cookieProperties.refreshTokenCookieName());
         if (refreshToken != null) {
-            refreshJwtService.revokeToken(UUID.fromString(refreshToken));
+            baseRefreshJwtService.revokeToken(UUID.fromString(refreshToken));
         }
         cookieService.clearTokenCookies(response);
     }
 
     @Transactional
     public void logoutAllSessions(HttpServletResponse response) {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        refreshJwtService.revokeAllTokensForUser(user);
+        U user = (U) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        baseRefreshJwtService.revokeAllTokensForUser(user);
         cookieService.clearTokenCookies(response);
     }
 }

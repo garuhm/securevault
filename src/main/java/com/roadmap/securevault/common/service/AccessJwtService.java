@@ -7,6 +7,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -15,6 +16,16 @@ public class AccessJwtService {
 
     public String generateAccessToken(UserDetails user) {
         return Jwts.builder()
+                .subject(user.getUsername())
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + jwtProperties.accessTokenExpiration()))
+                .signWith(jwtProperties.secretKey())
+                .compact();
+    }
+
+    public String generateAccessToken(UserDetails user, Map<String, Object> extraClaims) {
+        return Jwts.builder()
+                .claims(extraClaims)
                 .subject(user.getUsername())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + jwtProperties.accessTokenExpiration()))
@@ -34,6 +45,10 @@ public class AccessJwtService {
         } catch (JwtException e) {
             throw new UnsupportedJwtException("Invalid JWT token", e);
         }
+    }
+
+    public String extractClaim(String token, String claimKey) {
+        return extractAllClaims(token).get(claimKey, String.class);
     }
 
     public String extractUsername(String token) {

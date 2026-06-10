@@ -2,14 +2,13 @@ package com.roadmap.securevault.controller;
 
 import com.roadmap.securevault.common.config.properties.CookieProperties;
 import com.roadmap.securevault.common.config.properties.JwtProperties;
-import com.roadmap.securevault.dto.LoginRequest;
-import com.roadmap.securevault.dto.RegisterRequest;
+import com.roadmap.securevault.common.dto.LoginRequest;
+import com.roadmap.securevault.platform.dto.PlatformRegisterRequest;
 import com.roadmap.securevault.entity.Role;
 import com.roadmap.securevault.entity.User;
 import com.roadmap.securevault.entity.enums.RoleName;
-import com.roadmap.securevault.repo.RefreshTokenRepository;
-import com.roadmap.securevault.repo.RoleRepository;
-import com.roadmap.securevault.repo.UserRepository;
+import com.roadmap.securevault.common.repo.BaseRefreshTokenRepository;
+import com.roadmap.securevault.common.repo.BaseUserRepository;
 import com.roadmap.securevault.common.service.CookieService;
 import com.roadmap.securevault.test_util.testcontainers.AbstractPostgresIT;
 import jakarta.persistence.EntityManager;
@@ -39,11 +38,11 @@ class AuthControllerIT extends AbstractPostgresIT {
     @Autowired
     private MockMvc mockMvc;
     @Autowired
-    private UserRepository userRepository;
+    private BaseUserRepository baseUserRepository;
     @Autowired
     private RoleRepository roleRepository;
     @Autowired
-    private RefreshTokenRepository refreshTokenRepository;
+    private BaseRefreshTokenRepository baseRefreshTokenRepository;
     @Autowired
     private JwtProperties jwtProperties;
     @Autowired
@@ -64,8 +63,8 @@ class AuthControllerIT extends AbstractPostgresIT {
 
     @AfterEach
     void tearDown() {
-        refreshTokenRepository.deleteAll();
-        userRepository.deleteAll();
+        baseRefreshTokenRepository.deleteAll();
+        baseUserRepository.deleteAll();
         roleRepository.deleteAll();
     }
 
@@ -73,7 +72,7 @@ class AuthControllerIT extends AbstractPostgresIT {
     @DisplayName("Registration tests")
     class Registration {
 
-        RegisterRequest request = new RegisterRequest("username", "email@email.com", "P4$$word");
+        PlatformRegisterRequest request = new PlatformRegisterRequest("username", "email@email.com", "P4$$word");
 
         @Test
         @Transactional
@@ -87,14 +86,14 @@ class AuthControllerIT extends AbstractPostgresIT {
                     .andExpect(status().isCreated())
                     .andReturn();
 
-            assertThat(userRepository.existsByUsername(request.username())).isTrue();
-            assertThat(userRepository.findByUsername(request.username()).get().getRoles()).isNotEmpty();
-            assertThat(userRepository.findByUsername(request.username()).get().getRoles())
+            assertThat(baseUserRepository.existsByUsername(request.username())).isTrue();
+            assertThat(baseUserRepository.findByUsername(request.username()).get().getRoles()).isNotEmpty();
+            assertThat(baseUserRepository.findByUsername(request.username()).get().getRoles())
                     .extracting(Role::getName)
                     .contains(RoleName.ROLE_USER);
-            assertThat(refreshTokenRepository.findAllByUserAndRevokedFalse(userRepository.findByUsername(request.username()).get()).size()).isEqualTo(1);
-            assertThat(refreshTokenRepository.findAll().size()).isEqualTo(1);
-            assertThat(refreshTokenRepository
+            assertThat(baseRefreshTokenRepository.findAllByUserAndRevokedFalse(baseUserRepository.findByUsername(request.username()).get()).size()).isEqualTo(1);
+            assertThat(baseRefreshTokenRepository.findAll().size()).isEqualTo(1);
+            assertThat(baseRefreshTokenRepository
                     .findById(
                             UUID.fromString(
                                     extractTokenFromCookie(
@@ -111,7 +110,7 @@ class AuthControllerIT extends AbstractPostgresIT {
         @Test
         @DisplayName("User registration with invalid credentials; 400 status code")
         void registerUserWithInvalidCredentials() throws Exception {
-            RegisterRequest badRequest = new RegisterRequest("username", "email", "password");
+            PlatformRegisterRequest badRequest = new PlatformRegisterRequest("username", "email", "password");
 
             mockMvc.perform(
                             post("/auth/register")
@@ -121,16 +120,16 @@ class AuthControllerIT extends AbstractPostgresIT {
                     .andExpect(status().isBadRequest())
                     .andReturn();
 
-            assertThat(userRepository.existsByUsername(badRequest.username())).isFalse();
-            assertThat(userRepository.findByUsername(badRequest.username())).isEqualTo(Optional.empty());
-            assertThat(refreshTokenRepository.findAll().size()).isEqualTo(0);
+            assertThat(baseUserRepository.existsByUsername(badRequest.username())).isFalse();
+            assertThat(baseUserRepository.findByUsername(badRequest.username())).isEqualTo(Optional.empty());
+            assertThat(baseRefreshTokenRepository.findAll().size()).isEqualTo(0);
         }
 
         @Test
         @DisplayName("User registration with duplicate username; 409 status code")
         @Transactional
         void registerUserWithDuplicateUsername() throws Exception {
-            RegisterRequest badRequest = new RegisterRequest(request.username(), "email2@gmail.com", request.password());
+            PlatformRegisterRequest badRequest = new PlatformRegisterRequest(request.username(), "email2@gmail.com", request.password());
 
             mockMvc.perform(
                             post("/auth/register")
@@ -148,16 +147,16 @@ class AuthControllerIT extends AbstractPostgresIT {
                     .andExpect(status().isConflict())
                     .andReturn();
 
-            assertThat(userRepository.existsByUsername(badRequest.email())).isFalse();
-            assertThat(userRepository.findByUsername(badRequest.email())).isEqualTo(Optional.empty());
-            assertThat(refreshTokenRepository.findAll().size()).isEqualTo(1);
+            assertThat(baseUserRepository.existsByUsername(badRequest.email())).isFalse();
+            assertThat(baseUserRepository.findByUsername(badRequest.email())).isEqualTo(Optional.empty());
+            assertThat(baseRefreshTokenRepository.findAll().size()).isEqualTo(1);
         }
 
         @Test
         @DisplayName("User registration with duplicate email; 409 status code")
         @Transactional
         void registerUserWithDuplicateEmail() throws Exception {
-            RegisterRequest badRequest = new RegisterRequest("username2", request.email(), request.password());
+            PlatformRegisterRequest badRequest = new PlatformRegisterRequest("username2", request.email(), request.password());
 
             mockMvc.perform(
                             post("/auth/register")
@@ -175,16 +174,16 @@ class AuthControllerIT extends AbstractPostgresIT {
                     .andExpect(status().isConflict())
                     .andReturn();
 
-            assertThat(userRepository.existsByUsername(badRequest.username())).isFalse();
-            assertThat(userRepository.findByUsername(badRequest.username())).isEqualTo(Optional.empty());
-            assertThat(refreshTokenRepository.findAll().size()).isEqualTo(1);
+            assertThat(baseUserRepository.existsByUsername(badRequest.username())).isFalse();
+            assertThat(baseUserRepository.findByUsername(badRequest.username())).isEqualTo(Optional.empty());
+            assertThat(baseRefreshTokenRepository.findAll().size()).isEqualTo(1);
         }
     }
 
     @Nested
     @DisplayName("Login tests")
     class Login {
-        RegisterRequest register = new RegisterRequest("username", "email@email.com", "P4$$word");
+        PlatformRegisterRequest register = new PlatformRegisterRequest("username", "email@email.com", "P4$$word");
         LoginRequest login = new LoginRequest(register.username(), register.password());
 
         @Test
@@ -202,10 +201,10 @@ class AuthControllerIT extends AbstractPostgresIT {
                             .content(objectMapper.writeValueAsString(login)))
                     .andReturn();
 
-            User user = userRepository.findByUsername(register.username()).get();
+            User user = baseUserRepository.findByUsername(register.username()).get();
 
-            assertThat(refreshTokenRepository.findAll().size()).isEqualTo(2);
-            assertThat(refreshTokenRepository.findAllByUserAndRevokedFalse(user).size()).isEqualTo(2);
+            assertThat(baseRefreshTokenRepository.findAll().size()).isEqualTo(2);
+            assertThat(baseRefreshTokenRepository.findAllByUserAndRevokedFalse(user).size()).isEqualTo(2);
             assertThat(cookieExists(result.getResponse(), cookieProperties.accessTokenCookieName())).isTrue();
             assertThat(cookieExists(result.getResponse(), cookieProperties.refreshTokenCookieName())).isTrue();
             assertThat(extractTokenFromCookie(result.getResponse(), cookieProperties.accessTokenCookieName())).isNotNull();
@@ -237,10 +236,10 @@ class AuthControllerIT extends AbstractPostgresIT {
                     .andExpect(status().isUnauthorized())
                     .andReturn();
 
-            User user = userRepository.findByUsername(register.username()).get();
+            User user = baseUserRepository.findByUsername(register.username()).get();
 
-            assertThat(refreshTokenRepository.findAll().size()).isEqualTo(1);
-            assertThat(refreshTokenRepository.findAllByUserAndRevokedFalse(user).size()).isEqualTo(1);
+            assertThat(baseRefreshTokenRepository.findAll().size()).isEqualTo(1);
+            assertThat(baseRefreshTokenRepository.findAllByUserAndRevokedFalse(user).size()).isEqualTo(1);
         }
 
     }
@@ -248,7 +247,7 @@ class AuthControllerIT extends AbstractPostgresIT {
     @Nested
     @DisplayName("Refresh tests")
     class Refresh {
-        RegisterRequest register = new RegisterRequest("username", "email@email.com", "P4$$word");
+        PlatformRegisterRequest register = new PlatformRegisterRequest("username", "email@email.com", "P4$$word");
 
         // success
         @Test
@@ -272,10 +271,10 @@ class AuthControllerIT extends AbstractPostgresIT {
                     .andExpect(status().isOk())
                     .andReturn();
 
-            assertThat(refreshTokenRepository.findAll().size()).isEqualTo(2);
-            assertThat(refreshTokenRepository
+            assertThat(baseRefreshTokenRepository.findAll().size()).isEqualTo(2);
+            assertThat(baseRefreshTokenRepository
                     .findAllByUserAndRevokedFalse(
-                            userRepository
+                            baseUserRepository
                                     .findByUsername(register.username())
                                     .get())
                     .size())
@@ -335,10 +334,10 @@ class AuthControllerIT extends AbstractPostgresIT {
                     .andReturn();
 
             String refreshToken = extractTokenFromCookie(registerResult.getResponse(), cookieProperties.refreshTokenCookieName());
-            refreshTokenRepository.findById(UUID.fromString(refreshToken)).ifPresent(rt ->
+            baseRefreshTokenRepository.findById(UUID.fromString(refreshToken)).ifPresent(rt ->
                     {
                         rt.setRevoked(true);
-                        refreshTokenRepository.saveAndFlush(rt);
+                        baseRefreshTokenRepository.saveAndFlush(rt);
                     });
 
             Cookie refreshTokenCookie = Arrays.stream(registerResult.getResponse().getCookies())
@@ -365,10 +364,10 @@ class AuthControllerIT extends AbstractPostgresIT {
                     .andReturn();
 
             String refreshToken = extractTokenFromCookie(registerResult.getResponse(), cookieProperties.refreshTokenCookieName());
-            refreshTokenRepository.findById(UUID.fromString(refreshToken)).ifPresent(rt ->
+            baseRefreshTokenRepository.findById(UUID.fromString(refreshToken)).ifPresent(rt ->
             {
                 rt.setExpiryDate(new Date(System.currentTimeMillis() - jwtProperties.refreshTokenExpiration()));
-                refreshTokenRepository.saveAndFlush(rt);
+                baseRefreshTokenRepository.saveAndFlush(rt);
             });
 
             Cookie refreshTokenCookie = Arrays.stream(registerResult.getResponse().getCookies())
