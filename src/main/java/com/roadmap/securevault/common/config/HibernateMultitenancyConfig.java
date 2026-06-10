@@ -1,4 +1,4 @@
-package com.roadmap.securevault.config;
+package com.roadmap.securevault.common.config;
 
 import com.roadmap.securevault.multitenancy.SchemaMultiTenantConnectionProvider;
 import com.roadmap.securevault.multitenancy.TenantIdentifierResolver;

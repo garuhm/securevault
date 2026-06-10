@@ -1,8 +1,8 @@
 package com.roadmap.securevault.service;
 
-import com.roadmap.securevault.config.properties.JwtProperties;
+import com.roadmap.securevault.common.config.properties.JwtProperties;
 import com.roadmap.securevault.entity.User;
-import com.roadmap.securevault.service.helper.AccessJwtService;
+import com.roadmap.securevault.common.service.AccessJwtService;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.UnsupportedJwtException;

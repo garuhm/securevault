@@ -1,10 +1,10 @@
-package com.roadmap.securevault.service.helper;
+package com.roadmap.securevault.common.service;
 
-import com.roadmap.securevault.config.properties.CookieProperties;
-import com.roadmap.securevault.config.properties.JwtProperties;
+import com.roadmap.securevault.common.config.properties.CookieProperties;
+import com.roadmap.securevault.common.config.properties.JwtProperties;
 import com.roadmap.securevault.entity.RefreshToken;
 import com.roadmap.securevault.entity.User;
-import com.roadmap.securevault.exception.InvalidRefreshTokenException;
+import com.roadmap.securevault.common.exception.InvalidRefreshTokenException;
 import com.roadmap.securevault.repo.RefreshTokenRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;

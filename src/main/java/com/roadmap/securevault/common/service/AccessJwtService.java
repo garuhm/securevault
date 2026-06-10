@@ -1,6 +1,6 @@
-package com.roadmap.securevault.service.helper;
+package com.roadmap.securevault.common.service;
 
-import com.roadmap.securevault.config.properties.JwtProperties;
+import com.roadmap.securevault.common.config.properties.JwtProperties;
 import io.jsonwebtoken.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;

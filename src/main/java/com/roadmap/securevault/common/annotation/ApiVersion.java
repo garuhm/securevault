@@ -1,4 +1,4 @@
-package com.roadmap.securevault.controller.annotation;
+package com.roadmap.securevault.common.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

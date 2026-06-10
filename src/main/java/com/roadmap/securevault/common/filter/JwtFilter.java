@@ -1,8 +1,8 @@
-package com.roadmap.securevault.filter;
+package com.roadmap.securevault.common.filter;
 
-import com.roadmap.securevault.config.properties.CookieProperties;
-import com.roadmap.securevault.service.helper.AccessJwtService;
-import com.roadmap.securevault.service.helper.CookieService;
+import com.roadmap.securevault.common.config.properties.CookieProperties;
+import com.roadmap.securevault.common.service.AccessJwtService;
+import com.roadmap.securevault.common.service.CookieService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

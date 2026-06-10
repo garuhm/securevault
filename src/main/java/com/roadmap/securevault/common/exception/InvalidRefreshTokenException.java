@@ -1,4 +1,4 @@
-package com.roadmap.securevault.exception;
+package com.roadmap.securevault.common.exception;
 
 import io.jsonwebtoken.JwtException;
 

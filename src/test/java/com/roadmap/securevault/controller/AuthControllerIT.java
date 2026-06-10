@@ -1,7 +1,7 @@
 package com.roadmap.securevault.controller;
 
-import com.roadmap.securevault.config.properties.CookieProperties;
-import com.roadmap.securevault.config.properties.JwtProperties;
+import com.roadmap.securevault.common.config.properties.CookieProperties;
+import com.roadmap.securevault.common.config.properties.JwtProperties;
 import com.roadmap.securevault.dto.LoginRequest;
 import com.roadmap.securevault.dto.RegisterRequest;
 import com.roadmap.securevault.entity.Role;
@@ -10,7 +10,7 @@ import com.roadmap.securevault.entity.enums.RoleName;
 import com.roadmap.securevault.repo.RefreshTokenRepository;
 import com.roadmap.securevault.repo.RoleRepository;
 import com.roadmap.securevault.repo.UserRepository;
-import com.roadmap.securevault.service.helper.CookieService;
+import com.roadmap.securevault.common.service.CookieService;
 import com.roadmap.securevault.test_util.testcontainers.AbstractPostgresIT;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;

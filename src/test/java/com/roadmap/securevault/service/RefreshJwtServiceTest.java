@@ -1,14 +1,14 @@
 package com.roadmap.securevault.service;
 
-import com.roadmap.securevault.config.properties.CookieProperties;
-import com.roadmap.securevault.config.properties.JwtProperties;
+import com.roadmap.securevault.common.config.properties.CookieProperties;
+import com.roadmap.securevault.common.config.properties.JwtProperties;
 import com.roadmap.securevault.entity.RefreshToken;
 import com.roadmap.securevault.entity.User;
-import com.roadmap.securevault.exception.InvalidRefreshTokenException;
+import com.roadmap.securevault.common.exception.InvalidRefreshTokenException;
 import com.roadmap.securevault.repo.RefreshTokenRepository;
-import com.roadmap.securevault.service.helper.AccessJwtService;
-import com.roadmap.securevault.service.helper.CookieService;
-import com.roadmap.securevault.service.helper.RefreshJwtService;
+import com.roadmap.securevault.common.service.AccessJwtService;
+import com.roadmap.securevault.common.service.CookieService;
+import com.roadmap.securevault.common.service.RefreshJwtService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

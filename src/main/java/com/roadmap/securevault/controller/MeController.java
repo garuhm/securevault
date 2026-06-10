@@ -1,6 +1,6 @@
 package com.roadmap.securevault.controller;
 
-import com.roadmap.securevault.controller.annotation.ApiVersion;
+import com.roadmap.securevault.common.annotation.ApiVersion;
 import com.roadmap.securevault.dto.MeResponse;
 import com.roadmap.securevault.entity.User;
 import com.roadmap.securevault.mapper.UserMapper;

@@ -1,4 +1,4 @@
-package com.roadmap.securevault.config;
+package com.roadmap.securevault.common.config;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;

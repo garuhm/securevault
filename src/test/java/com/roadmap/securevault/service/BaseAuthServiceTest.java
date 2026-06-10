@@ -1,19 +1,20 @@
 package com.roadmap.securevault.service;
 
-import com.roadmap.securevault.config.properties.CookieProperties;
-import com.roadmap.securevault.config.properties.JwtProperties;
+import com.roadmap.securevault.common.config.properties.CookieProperties;
+import com.roadmap.securevault.common.config.properties.JwtProperties;
+import com.roadmap.securevault.common.service.BaseAuthService;
 import com.roadmap.securevault.dto.LoginRequest;
 import com.roadmap.securevault.dto.RegisterRequest;
 import com.roadmap.securevault.entity.Role;
 import com.roadmap.securevault.entity.User;
 import com.roadmap.securevault.entity.enums.RoleName;
-import com.roadmap.securevault.exception.CredentialsTakenException;
+import com.roadmap.securevault.common.exception.CredentialsTakenException;
 import com.roadmap.securevault.mapper.UserMapper;
 import com.roadmap.securevault.repo.RoleRepository;
 import com.roadmap.securevault.repo.UserRepository;
-import com.roadmap.securevault.service.helper.AccessJwtService;
-import com.roadmap.securevault.service.helper.CookieService;
-import com.roadmap.securevault.service.helper.RefreshJwtService;
+import com.roadmap.securevault.common.service.AccessJwtService;
+import com.roadmap.securevault.common.service.CookieService;
+import com.roadmap.securevault.common.service.RefreshJwtService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,7 +42,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("AuthService Unit Tests")
-class AuthServiceTest {
+class BaseAuthServiceTest {
     @Mock
     private UserRepository userRepository;
     @Mock
@@ -58,7 +59,7 @@ class AuthServiceTest {
     private UserService userService;
 
     @InjectMocks
-    private AuthService authService;
+    private BaseAuthService baseAuthService;
 
     private User user;
 
@@ -127,7 +128,7 @@ class AuthServiceTest {
                 when(userRepository.save(user)).thenReturn(user);
 
                 // when
-                authService.register(credentials, response);
+                baseAuthService.register(credentials, response);
             }
 
             //  then
@@ -171,21 +172,21 @@ class AuthServiceTest {
         @DisplayName("Register user with duplicate username; exception thrown")
         void registerUserWithDuplicateUsername() {
             when(userRepository.existsByUsername(credentials.username())).thenReturn(true);
-            assertThrows(CredentialsTakenException.class, () -> authService.register(credentials, response));
+            assertThrows(CredentialsTakenException.class, () -> baseAuthService.register(credentials, response));
         }
 
         @Test
         @DisplayName("Register user with duplicate email; exception thrown")
         void registerUserWithDuplicateEmail() {
             when(userRepository.existsByEmail(credentials.email())).thenReturn(true);
-            assertThrows(CredentialsTakenException.class, () -> authService.register(credentials, response));
+            assertThrows(CredentialsTakenException.class, () -> baseAuthService.register(credentials, response));
         }
 
         @Test
         @DisplayName("Register user with invalid role; exception thrown")
         void registerUserWithInvalidRole() {
             when(roleRepository.findByName(RoleName.ROLE_USER)).thenReturn(Optional.empty());
-            assertThrows(EntityNotFoundException.class, () -> authService.register(credentials, response));
+            assertThrows(EntityNotFoundException.class, () -> baseAuthService.register(credentials, response));
         }
     }
 
@@ -209,7 +210,7 @@ class AuthServiceTest {
                             .expiryDate(new Date(System.currentTimeMillis() + jwtProperties.refreshTokenExpiration()))
                             .build());
 
-            authService.login(credentials, response);
+            baseAuthService.login(credentials, response);
 
             verify(userService, times(1)).loadUserByUsername(credentials.username());
             verify(passwordEncoder, times(1)).matches(credentials.password(), user.getPassword());
@@ -248,7 +249,7 @@ class AuthServiceTest {
         @DisplayName("Login with invalid username; exception thrown")
         void loginWithInvalidUsername() {
             when(userService.loadUserByUsername(credentials.username())).thenThrow(UsernameNotFoundException.class);
-            assertThrows(UsernameNotFoundException.class, () -> authService.login(credentials, response));
+            assertThrows(UsernameNotFoundException.class, () -> baseAuthService.login(credentials, response));
         }
 
         @Test
@@ -256,7 +257,7 @@ class AuthServiceTest {
         void loginWithInvalidPassword() {
             when(userService.loadUserByUsername(credentials.username())).thenReturn(user);
             when(passwordEncoder.matches(credentials.password(), user.getPassword())).thenReturn(false);
-            assertThrows(BadCredentialsException.class, () -> authService.login(credentials, response));
+            assertThrows(BadCredentialsException.class, () -> baseAuthService.login(credentials, response));
         }
     }
 
@@ -276,7 +277,7 @@ class AuthServiceTest {
                     }
             ).when(cookieService).addTokenCookies(eq(response), eq("accessToken"), any());
 
-            authService.refreshToken(request, response);
+            baseAuthService.refreshToken(request, response);
             verify(cookieService, times(1)).addTokenCookies(eq(response), eq("accessToken"), any());
 
             assertEquals(2, response.getCookies().length);

@@ -1,7 +1,7 @@
-package com.roadmap.securevault.service.helper;
+package com.roadmap.securevault.common.service;
 
-import com.roadmap.securevault.config.properties.CookieProperties;
-import com.roadmap.securevault.config.properties.JwtProperties;
+import com.roadmap.securevault.common.config.properties.CookieProperties;
+import com.roadmap.securevault.common.config.properties.JwtProperties;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

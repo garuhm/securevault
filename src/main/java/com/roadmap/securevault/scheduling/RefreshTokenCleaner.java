@@ -1,6 +1,6 @@
 package com.roadmap.securevault.scheduling;
 
-import com.roadmap.securevault.service.helper.RefreshJwtService;
+import com.roadmap.securevault.common.service.RefreshJwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;

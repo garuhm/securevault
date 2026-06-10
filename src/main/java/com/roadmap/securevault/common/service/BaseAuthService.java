@@ -1,17 +1,15 @@
-package com.roadmap.securevault.service;
+package com.roadmap.securevault.common.service;
 
-import com.roadmap.securevault.config.properties.CookieProperties;
+import com.roadmap.securevault.common.config.properties.CookieProperties;
 import com.roadmap.securevault.dto.LoginRequest;
 import com.roadmap.securevault.dto.RegisterRequest;
 import com.roadmap.securevault.entity.User;
 import com.roadmap.securevault.entity.enums.RoleName;
-import com.roadmap.securevault.exception.CredentialsTakenException;
+import com.roadmap.securevault.common.exception.CredentialsTakenException;
 import com.roadmap.securevault.mapper.UserMapper;
 import com.roadmap.securevault.repo.RoleRepository;
 import com.roadmap.securevault.repo.UserRepository;
-import com.roadmap.securevault.service.helper.AccessJwtService;
-import com.roadmap.securevault.service.helper.CookieService;
-import com.roadmap.securevault.service.helper.RefreshJwtService;
+import com.roadmap.securevault.service.UserService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -26,7 +24,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class AuthService {
+public class BaseAuthService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;

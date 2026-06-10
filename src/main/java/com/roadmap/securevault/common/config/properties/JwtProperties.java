@@ -1,4 +1,4 @@
-package com.roadmap.securevault.config.properties;
+package com.roadmap.securevault.common.config.properties;
 
 import io.jsonwebtoken.security.Keys;
 import org.springframework.boot.context.properties.ConfigurationProperties;

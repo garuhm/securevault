@@ -1,16 +1,16 @@
 package com.roadmap.securevault.controller;
 
-import com.roadmap.securevault.config.SecurityConfig;
-import com.roadmap.securevault.config.properties.CookieProperties;
-import com.roadmap.securevault.config.properties.JwtProperties;
+import com.roadmap.securevault.common.config.SecurityConfig;
+import com.roadmap.securevault.common.config.properties.CookieProperties;
+import com.roadmap.securevault.common.config.properties.JwtProperties;
 import com.roadmap.securevault.dto.LoginRequest;
 import com.roadmap.securevault.dto.RegisterRequest;
-import com.roadmap.securevault.exception.CredentialsTakenException;
-import com.roadmap.securevault.exception.GlobalExceptionHandler;
-import com.roadmap.securevault.exception.InvalidRefreshTokenException;
-import com.roadmap.securevault.service.helper.AccessJwtService;
-import com.roadmap.securevault.service.AuthService;
-import com.roadmap.securevault.service.helper.CookieService;
+import com.roadmap.securevault.common.exception.CredentialsTakenException;
+import com.roadmap.securevault.common.exception.GlobalExceptionHandler;
+import com.roadmap.securevault.common.exception.InvalidRefreshTokenException;
+import com.roadmap.securevault.common.service.AccessJwtService;
+import com.roadmap.securevault.common.service.BaseAuthService;
+import com.roadmap.securevault.common.service.CookieService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.DisplayName;
@@ -44,7 +44,7 @@ class AuthControllerWebMvcTest {
     @MockitoBean
     private CookieService cookieService;
     @MockitoBean
-    private AuthService authService;
+    private BaseAuthService baseAuthService;
     @MockitoBean
     private AccessJwtService accessJwtService;
     @MockitoBean
@@ -62,7 +62,7 @@ class AuthControllerWebMvcTest {
         @Test
         @DisplayName("Register new user with valid credentials; successful")
         void registerNewUserWithValidCredentials() throws Exception {
-            doNothing().when(authService).register(any(RegisterRequest.class), any(HttpServletResponse.class));
+            doNothing().when(baseAuthService).register(any(RegisterRequest.class), any(HttpServletResponse.class));
 
             RegisterRequest request = new RegisterRequest("username", "email@email.com", "P4$$word");
 
@@ -77,7 +77,7 @@ class AuthControllerWebMvcTest {
         @Test
         @DisplayName("Register new user with invalid credentials; 400 status code")
         void registerNewUserWithInvalidCredentials() throws Exception {
-            doNothing().when(authService).register(any(RegisterRequest.class), any(HttpServletResponse.class));
+            doNothing().when(baseAuthService).register(any(RegisterRequest.class), any(HttpServletResponse.class));
 
             RegisterRequest request = new RegisterRequest("username", "email.com", "password");
 
@@ -92,7 +92,7 @@ class AuthControllerWebMvcTest {
         @Test
         @DisplayName("Register new user with duplicate username; 409 status code")
         void registerNewUserWithDuplicateUsername() throws Exception {
-            doThrow(new CredentialsTakenException("Username already exists")).when(authService).register(any(RegisterRequest.class), any(HttpServletResponse.class));
+            doThrow(new CredentialsTakenException("Username already exists")).when(baseAuthService).register(any(RegisterRequest.class), any(HttpServletResponse.class));
 
             RegisterRequest request = new RegisterRequest("username", "email@email.com", "P4$$word");
 
@@ -107,7 +107,7 @@ class AuthControllerWebMvcTest {
         @Test
         @DisplayName("Register new user with duplicate email; 409 status code")
         void registerNewUserWithDuplicateEmail() throws Exception {
-            doThrow(new CredentialsTakenException("Username already exists")).when(authService).register(any(RegisterRequest.class), any(HttpServletResponse.class));
+            doThrow(new CredentialsTakenException("Username already exists")).when(baseAuthService).register(any(RegisterRequest.class), any(HttpServletResponse.class));
 
             RegisterRequest request = new RegisterRequest("username", "email@email.com", "P4$$word");
 
@@ -126,7 +126,7 @@ class AuthControllerWebMvcTest {
         @Test
         @DisplayName("Login with valid credentials; successful")
         void loginWithValidCredentials() throws Exception {
-            doNothing().when(authService).login(any(LoginRequest.class), any(HttpServletResponse.class));
+            doNothing().when(baseAuthService).login(any(LoginRequest.class), any(HttpServletResponse.class));
 
             LoginRequest request = new LoginRequest("username", "P4$$word");
 
@@ -141,7 +141,7 @@ class AuthControllerWebMvcTest {
         @Test
         @DisplayName("Login with invalid credentials; exception thrown")
         void loginWithInvalidCredentials() throws Exception {
-            doThrow(BadCredentialsException.class).when(authService).login(any(LoginRequest.class), any(HttpServletResponse.class));
+            doThrow(BadCredentialsException.class).when(baseAuthService).login(any(LoginRequest.class), any(HttpServletResponse.class));
 
             LoginRequest request = new LoginRequest("username", "invalid_password");
 
@@ -160,7 +160,7 @@ class AuthControllerWebMvcTest {
         @Test
         @DisplayName("Validate refresh token; successful")
         void validateRefreshToken() throws Exception {
-            doNothing().when(authService).refreshToken(any(HttpServletRequest.class) ,any(HttpServletResponse.class));
+            doNothing().when(baseAuthService).refreshToken(any(HttpServletRequest.class) ,any(HttpServletResponse.class));
 
             mockMvc.perform(
                             post("/auth/refresh")
@@ -172,7 +172,7 @@ class AuthControllerWebMvcTest {
         @Test
         @DisplayName("Validate refresh token with invalid cookie; exception thrown")
         void validateRefreshTokenWithInvalidCookie() throws Exception {
-            doThrow(InvalidCookieException.class).when(authService).refreshToken(any(HttpServletRequest.class) ,any(HttpServletResponse.class));
+            doThrow(InvalidCookieException.class).when(baseAuthService).refreshToken(any(HttpServletRequest.class) ,any(HttpServletResponse.class));
             mockMvc.perform(
                             post("/auth/refresh")
                                     .contentType("application/json")
@@ -183,7 +183,7 @@ class AuthControllerWebMvcTest {
         @Test
         @DisplayName("Validate refresh token with invalid refresh token; exception thrown")
         void validateRefreshTokenWithInvalidRefreshToken() throws Exception {
-            doThrow(InvalidRefreshTokenException.class).when(authService).refreshToken(any(HttpServletRequest.class) ,any(HttpServletResponse.class));
+            doThrow(InvalidRefreshTokenException.class).when(baseAuthService).refreshToken(any(HttpServletRequest.class) ,any(HttpServletResponse.class));
             mockMvc.perform(
                             post("/auth/refresh")
                                     .contentType("application/json")
@@ -198,7 +198,7 @@ class AuthControllerWebMvcTest {
         @Test
         @DisplayName("Logout; successful")
         void logout() throws Exception {
-            doNothing().when(authService).logout(any(HttpServletRequest.class) ,any(HttpServletResponse.class));
+            doNothing().when(baseAuthService).logout(any(HttpServletRequest.class) ,any(HttpServletResponse.class));
 
             mockMvc.perform(
                             post("/auth/logout")
@@ -210,7 +210,7 @@ class AuthControllerWebMvcTest {
         @Test
         @DisplayName("Logout all sessions (/auth/logout?all=true); successful")
         void logoutAllSessions() throws Exception {
-            doNothing().when(authService).logoutAllSessions(any(HttpServletResponse.class));
+            doNothing().when(baseAuthService).logoutAllSessions(any(HttpServletResponse.class));
 
             mockMvc.perform(
                             post("/auth/logout?all=true")
