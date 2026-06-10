@@ -23,8 +23,6 @@ public interface BaseRefreshTokenRepository<T extends BaseRefreshToken<U>, U ext
     @Transactional
     void deleteByExpiryDateBefore(Date date);
 
-    @Modifying
-    @Transactional
     void revokeAllByUser(@Param("user") U user);
 
     @Modifying
