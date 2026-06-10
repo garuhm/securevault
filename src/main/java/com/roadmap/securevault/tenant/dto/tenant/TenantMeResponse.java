@@ -1,4 +1,4 @@
-package com.roadmap.securevault.tenant.dto;
+package com.roadmap.securevault.tenant.dto.tenant;
 
 public record TenantMeResponse(
         String username,
