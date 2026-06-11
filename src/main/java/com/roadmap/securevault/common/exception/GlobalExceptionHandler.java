@@ -25,7 +25,8 @@ public class GlobalExceptionHandler {
             UsernameNotFoundException.class,
             BadCredentialsException.class,
             InvalidRefreshTokenException.class,
-            InvalidCookieException.class})
+            InvalidCookieException.class,
+            InvalidBootstrapTokenException.class})
     public ResponseEntity<String> handleUnauthorizedException(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
     }
