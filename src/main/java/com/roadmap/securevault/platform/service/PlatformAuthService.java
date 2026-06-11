@@ -10,7 +10,7 @@ import com.roadmap.securevault.platform.entity.PlatformUser;
 import com.roadmap.securevault.platform.entity.enums.PlatformRole;
 import com.roadmap.securevault.platform.mapper.PlatformUserMapper;
 import com.roadmap.securevault.platform.repo.PlatformUserRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 

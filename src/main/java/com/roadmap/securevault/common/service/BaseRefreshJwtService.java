@@ -8,7 +8,7 @@ import com.roadmap.securevault.common.entity.BaseUser;
 import com.roadmap.securevault.common.exception.InvalidRefreshTokenException;
 import com.roadmap.securevault.common.repo.BaseRefreshTokenRepository;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.rememberme.InvalidCookieException;
 

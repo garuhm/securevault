@@ -3,7 +3,7 @@ package com.roadmap.securevault.tenant.repo;
 import com.roadmap.securevault.common.repo.BaseRefreshTokenRepository;
 import com.roadmap.securevault.tenant.entity.TenantRefreshToken;
 import com.roadmap.securevault.tenant.entity.TenantUser;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

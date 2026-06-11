@@ -6,7 +6,7 @@ import com.roadmap.securevault.common.entity.BaseUser;
 import com.roadmap.securevault.common.exception.CredentialsTakenException;
 import com.roadmap.securevault.common.repo.BaseUserRepository;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;

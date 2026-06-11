@@ -15,7 +15,7 @@ import com.roadmap.securevault.tenant.mapper.InviteMapper;
 import com.roadmap.securevault.tenant.repo.InviteCodeRepository;
 import com.roadmap.securevault.tenant.repo.TenantUserRepository;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

@@ -7,6 +7,7 @@ import com.roadmap.securevault.tenant.dto.tenant.TenantFilter;
 import com.roadmap.securevault.tenant.dto.tenant.TenantRegistrationRequest;
 import com.roadmap.securevault.tenant.dto.tenant.TenantResponse;
 import com.roadmap.securevault.tenant.service.TenantService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
@@ -41,7 +42,7 @@ public class TenantController {
 
     @NoApiVersion
     @PostMapping("/register")
-    public ResponseEntity<Void> registerTenant(@RequestBody TenantRegistrationRequest request) {
+    public ResponseEntity<Void> registerTenant(@RequestBody @Valid TenantRegistrationRequest request) {
         tenantService.registerTenant(request);
         return ResponseEntity.status(201).build();
     }

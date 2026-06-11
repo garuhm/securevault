@@ -9,8 +9,10 @@ import com.roadmap.securevault.multitenancy.TenantContext;
 import com.roadmap.securevault.tenant.entity.TenantRefreshToken;
 import com.roadmap.securevault.tenant.entity.TenantUser;
 import com.roadmap.securevault.tenant.repo.TenantRefreshTokenRepository;
-import jakarta.transaction.Transactional;
+
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 
@@ -35,7 +37,7 @@ public class TenantRefreshJwtService extends BaseRefreshJwtService<TenantUser, T
                 .build();
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void revokeAllTenantTokens(String schemaName) {
         TenantContext.setTenantId(schemaName);
         try {

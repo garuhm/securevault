@@ -17,7 +17,7 @@ import com.roadmap.securevault.tenant.mapper.TenantUserMapper;
 import com.roadmap.securevault.tenant.repo.TenantUserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

@@ -3,7 +3,7 @@ package com.roadmap.securevault.tenant.service;
 import com.roadmap.securevault.tenant.entity.Tenant;
 import com.roadmap.securevault.tenant.entity.enums.TenantStatus;
 import com.roadmap.securevault.tenant.repo.TenantRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

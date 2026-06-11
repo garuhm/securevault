@@ -10,7 +10,7 @@ import com.roadmap.securevault.tenant.mapper.TenantUserMapper;
 import com.roadmap.securevault.tenant.repo.TenantUserRepository;
 import com.roadmap.securevault.tenant.spec.TenantUserSpecification;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
