@@ -1,4 +1,4 @@
-package com.roadmap.securevault.common.config;
+package com.roadmap.securevault.common.config.security;
 
 import com.roadmap.securevault.common.filter.BaseJwtFilter;
 import jakarta.servlet.http.HttpServletResponse;
