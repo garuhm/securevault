@@ -1,6 +1,6 @@
 package com.roadmap.securevault.platform.config;
 
-import com.roadmap.securevault.common.config.BaseSecurityConfig;
+import com.roadmap.securevault.common.config.security.BaseSecurityConfig;
 import com.roadmap.securevault.platform.filter.PlatformJwtFilter;
 import com.roadmap.securevault.platform.service.PlatformUserService;
 import org.springframework.context.annotation.Bean;

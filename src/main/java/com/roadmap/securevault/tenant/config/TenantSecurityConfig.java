@@ -1,6 +1,6 @@
 package com.roadmap.securevault.tenant.config;
 
-import com.roadmap.securevault.common.config.BaseSecurityConfig;
+import com.roadmap.securevault.common.config.security.BaseSecurityConfig;
 import com.roadmap.securevault.tenant.filter.TenantJwtFilter;
 import com.roadmap.securevault.tenant.filter.TenantResolutionFilter;
 import com.roadmap.securevault.tenant.service.TenantUserService;
