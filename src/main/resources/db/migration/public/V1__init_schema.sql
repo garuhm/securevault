@@ -14,8 +14,9 @@ CREATE TABLE tenants (
                          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                          company_name VARCHAR(255) NOT NULL,
                          company_code VARCHAR(32) NOT NULL UNIQUE,
-                         schema_name VARCHAR(64) NOT NULL UNIQUE,
-                         status VARCHAR(16) NOT NULL DEFAULT 'PENDING',
+                         schema_name VARCHAR(255) UNIQUE,
+                         status VARCHAR(32) NOT NULL DEFAULT 'PENDING',
+                         owner_email VARCHAR(255),
                          created_at TIMESTAMP NOT NULL DEFAULT NOW(),
                          updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
