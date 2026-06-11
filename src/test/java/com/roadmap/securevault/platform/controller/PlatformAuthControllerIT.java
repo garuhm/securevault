@@ -10,7 +10,6 @@ import com.roadmap.securevault.platform.repo.PlatformUserRepository;
 import com.roadmap.securevault.test_util.testcontainers.AbstractIT;
 import com.roadmap.securevault.test_util.web.ApiVersioningResolver;
 import jakarta.servlet.http.Cookie;
-import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -59,10 +58,8 @@ class PlatformAuthControllerIT extends AbstractIT {
         refreshTokenRepository.deleteAll();
         userRepository.deleteAll();
         // re-seed owner so subsequent tests work
-        seedOwner();
     }
 
-    @Transactional
     void seedOwner() {
         if (!userRepository.existsByUsername(OWNER_USERNAME)) {
             PlatformUser owner = PlatformUser.builder()
