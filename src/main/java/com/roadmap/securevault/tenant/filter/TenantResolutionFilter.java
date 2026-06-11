@@ -66,6 +66,6 @@ public class TenantResolutionFilter extends OncePerRequestFilter {
     private String extractCompanyCode(String path) {
         if (path == null || !path.startsWith("/t/")) return null;
         String[] parts = path.split("/");
-        return parts.length >= 3 ? parts[1] : null;
+        return parts.length >= 3 ? parts[2] : null;
     }
 }
