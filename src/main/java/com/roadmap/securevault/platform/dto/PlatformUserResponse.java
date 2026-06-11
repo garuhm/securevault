@@ -1,16 +1,17 @@
-package com.roadmap.securevault.tenant.dto.tenant_user;
+package com.roadmap.securevault.platform.dto;
 
 import com.roadmap.securevault.common.dto.UserResponse;
-import com.roadmap.securevault.tenant.entity.enums.TenantRole;
+import com.roadmap.securevault.platform.entity.enums.PlatformRole;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-public record TenantUserResponse(
+public record PlatformUserResponse(
         UUID id,
         String username,
         String email,
-        TenantRole role,
+        PlatformRole role,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
-) implements UserResponse {}
+) implements UserResponse {
+}
