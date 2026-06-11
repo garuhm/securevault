@@ -24,12 +24,8 @@ public class InviteCode extends BaseEntity implements UserOwnable<TenantUser> {
     @EqualsAndHashCode.Include
     private UUID id;
 
-    @Column(nullable = false, unique = true)
+    @Column(unique = true)
     private String code;
-
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private TenantUser user;
 
     @Column(nullable = false)
     private String inviteeEmail;

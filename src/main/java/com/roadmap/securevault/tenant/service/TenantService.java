@@ -1,6 +1,7 @@
 package com.roadmap.securevault.tenant.service;
 
 import com.roadmap.securevault.common.exception.CredentialsTakenException;
+import com.roadmap.securevault.common.exception.InvalidStateException;
 import com.roadmap.securevault.common.service.NotificationService;
 import com.roadmap.securevault.tenant.dto.tenant.TenantApprovalResponse;
 import com.roadmap.securevault.tenant.dto.tenant.TenantFilter;
@@ -61,7 +62,7 @@ public class TenantService {
                 .orElseThrow(() -> new EntityNotFoundException("Tenant not found"));
 
         if (tenant.getStatus() != TenantStatus.PENDING) {
-            throw new IllegalStateException("Tenant is not in pending status");
+            throw new InvalidStateException("Tenant is not in pending status");
         }
 
         Tenant approved = tenantStatusService.markAsApproved(tenant);

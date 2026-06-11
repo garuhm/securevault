@@ -16,8 +16,10 @@ import java.util.stream.Collectors;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
-    @ExceptionHandler(value = CredentialsTakenException.class)
-    public ResponseEntity<String> handleCredentialsTakenException(CredentialsTakenException ex) {
+    @ExceptionHandler(value = {
+            CredentialsTakenException.class,
+            InvalidStateException.class})
+    public ResponseEntity<String> handleConflictException(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
     }
 
@@ -49,10 +51,5 @@ public class GlobalExceptionHandler {
                                 (existing, duplicate) -> existing));
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
-    }
-
-    @ExceptionHandler(value = IllegalStateException.class)
-    public ResponseEntity<String> handleIllegalStateException(IllegalStateException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 }

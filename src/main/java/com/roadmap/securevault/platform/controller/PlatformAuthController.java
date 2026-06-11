@@ -16,7 +16,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@ApiVersion("v1")
 @RequestMapping("/platform/auth")
 public class PlatformAuthController extends BaseAuthController<PlatformUser, PlatformUserRepository> {
 
@@ -27,6 +26,7 @@ public class PlatformAuthController extends BaseAuthController<PlatformUser, Pla
         this.platformAuthService = platformAuthService;
     }
 
+    @ApiVersion("v1")
     @PostMapping("/register")
     @PreAuthorize("hasAuthority('PLATFORM_OWNER')")
     public ResponseEntity<Void> register(@Valid @RequestBody PlatformUserRegisterRequest credentials,

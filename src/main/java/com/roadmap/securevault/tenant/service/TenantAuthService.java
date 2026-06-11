@@ -8,7 +8,7 @@ import com.roadmap.securevault.common.service.AccessJwtService;
 import com.roadmap.securevault.common.service.BaseAuthService;
 import com.roadmap.securevault.common.service.CookieService;
 import com.roadmap.securevault.tenant.dto.tenant.TenantSetupRequest;
-import com.roadmap.securevault.tenant.dto.tenant_user.TenantUserRegisterRequest;
+import com.roadmap.securevault.tenant.dto.invite.TenantUserRegisterRequest;
 import com.roadmap.securevault.tenant.entity.InviteCode;
 import com.roadmap.securevault.tenant.entity.Tenant;
 import com.roadmap.securevault.tenant.entity.TenantUser;

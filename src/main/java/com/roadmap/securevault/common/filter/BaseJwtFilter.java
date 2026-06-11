@@ -20,12 +20,12 @@ import java.io.IOException;
 public abstract class BaseJwtFilter extends OncePerRequestFilter {
 
     protected final AccessJwtService accessJwtService;
-    protected final BaseUserService<?, ?> userService;
+    protected final BaseUserService<?, ?, ?, ?> userService;
     protected final CookieService cookieService;
     protected final CookieProperties cookieProperties;
 
     protected BaseJwtFilter(AccessJwtService accessJwtService,
-                            BaseUserService<?, ?> userService,
+                            BaseUserService<?, ?, ?, ?> userService,
                             CookieService cookieService,
                             CookieProperties cookieProperties) {
         this.accessJwtService = accessJwtService;

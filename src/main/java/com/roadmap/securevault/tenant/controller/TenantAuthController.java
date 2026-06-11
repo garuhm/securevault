@@ -3,7 +3,7 @@ package com.roadmap.securevault.tenant.controller;
 import com.roadmap.securevault.common.controller.BaseAuthController;
 import com.roadmap.securevault.common.dto.LoginRequest;
 import com.roadmap.securevault.tenant.dto.tenant.TenantSetupRequest;
-import com.roadmap.securevault.tenant.dto.tenant_user.TenantUserRegisterRequest;
+import com.roadmap.securevault.tenant.dto.invite.TenantUserRegisterRequest;
 import com.roadmap.securevault.tenant.entity.TenantUser;
 import com.roadmap.securevault.tenant.repo.TenantUserRepository;
 import com.roadmap.securevault.tenant.service.TenantAuthService;

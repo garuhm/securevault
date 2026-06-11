@@ -7,7 +7,7 @@ import com.roadmap.securevault.common.service.NotificationService;
 import com.roadmap.securevault.common.spec.EntitySpecification;
 import com.roadmap.securevault.tenant.dto.invite.InviteCreateRequest;
 import com.roadmap.securevault.tenant.dto.invite.InviteResponse;
-import com.roadmap.securevault.tenant.dto.tenant_user.TenantUserRegisterRequest;
+import com.roadmap.securevault.tenant.dto.invite.TenantUserRegisterRequest;
 import com.roadmap.securevault.tenant.entity.InviteCode;
 import com.roadmap.securevault.tenant.entity.TenantUser;
 import com.roadmap.securevault.tenant.entity.enums.TenantRole;
@@ -70,7 +70,7 @@ public class InviteService {
                 .expiresAt(LocalDateTime.now().plusHours(redisProperties.inviteTokenTtlHours()))
                 .build();
 
-        InviteCode saved = inviteCodeRepository.save(invite);
+        InviteCode saved = inviteCodeRepository.saveAndFlush(invite);
 
         String token = inviteTokenService.generateToken(saved.getId());
         saved.setCode(token);
