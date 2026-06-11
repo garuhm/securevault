@@ -1,13 +1,13 @@
 package com.roadmap.securevault.platform.mapper;
 
 import com.roadmap.securevault.common.dto.MeResponse;
-import com.roadmap.securevault.platform.dto.PlatformRegisterRequest;
+import com.roadmap.securevault.platform.dto.PlatformUserRegisterRequest;
 import com.roadmap.securevault.platform.dto.PlatformUserResponse;
 import com.roadmap.securevault.platform.entity.PlatformUser;
 
 public class PlatformUserMapper {
 
-    public static PlatformUser toEntity(PlatformRegisterRequest credentials) {
+    public static PlatformUser toEntity(PlatformUserRegisterRequest credentials) {
         return PlatformUser.builder()
                 .username(credentials.username())
                 .email(credentials.email())

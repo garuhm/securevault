@@ -3,7 +3,7 @@ package com.roadmap.securevault.platform.controller;
 import com.roadmap.securevault.common.annotation.ApiVersion;
 import com.roadmap.securevault.common.controller.BaseAuthController;
 import com.roadmap.securevault.common.dto.LoginRequest;
-import com.roadmap.securevault.platform.dto.PlatformRegisterRequest;
+import com.roadmap.securevault.platform.dto.PlatformUserRegisterRequest;
 import com.roadmap.securevault.platform.entity.PlatformUser;
 import com.roadmap.securevault.platform.entity.enums.PlatformRole;
 import com.roadmap.securevault.platform.repo.PlatformUserRepository;
@@ -29,7 +29,7 @@ public class PlatformAuthController extends BaseAuthController<PlatformUser, Pla
 
     @PostMapping("/register")
     @PreAuthorize("hasAuthority('PLATFORM_OWNER')")
-    public ResponseEntity<Void> register(@Valid @RequestBody PlatformRegisterRequest credentials,
+    public ResponseEntity<Void> register(@Valid @RequestBody PlatformUserRegisterRequest credentials,
                                          @RequestParam PlatformRole role) {
         platformAuthService.register(credentials, role);
         return ResponseEntity.status(HttpStatus.CREATED).build();

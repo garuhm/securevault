@@ -4,7 +4,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 
-public record PlatformRegisterRequest(
+public record PlatformUserRegisterRequest(
         @NotBlank(message = "Username cannot be blank")
         @Pattern(regexp = "^[a-zA-Z0-9_.]{4,32}$",
                 message = "Username must be between 4 and 32 characters and contain only letters, numbers, underscores, and periods")

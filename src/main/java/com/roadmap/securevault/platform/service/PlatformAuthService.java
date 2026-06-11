@@ -5,7 +5,7 @@ import com.roadmap.securevault.common.exception.CredentialsTakenException;
 import com.roadmap.securevault.common.service.AccessJwtService;
 import com.roadmap.securevault.common.service.BaseAuthService;
 import com.roadmap.securevault.common.service.CookieService;
-import com.roadmap.securevault.platform.dto.PlatformRegisterRequest;
+import com.roadmap.securevault.platform.dto.PlatformUserRegisterRequest;
 import com.roadmap.securevault.platform.entity.PlatformUser;
 import com.roadmap.securevault.platform.entity.enums.PlatformRole;
 import com.roadmap.securevault.platform.mapper.PlatformUserMapper;
@@ -29,7 +29,7 @@ public class PlatformAuthService extends BaseAuthService<PlatformUser, PlatformU
     }
 
     @Transactional
-    public void register(PlatformRegisterRequest credentials,
+    public void register(PlatformUserRegisterRequest credentials,
                          PlatformRole role) {
         if (userRepository.existsByUsername(credentials.username())) {
             throw new CredentialsTakenException("Username already exists");
