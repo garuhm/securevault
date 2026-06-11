@@ -6,4 +6,4 @@ public record TenantUserFilter(
         TenantRole role,
         String username,
         String email
-) {}
+){}
