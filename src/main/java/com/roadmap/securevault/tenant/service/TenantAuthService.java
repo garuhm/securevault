@@ -74,7 +74,7 @@ public class TenantAuthService extends BaseAuthService<TenantUser, TenantUserRep
         }
 
         // 2. verify token exists without consuming
-        UUID tenantId = bootstrapTokenService.peekBootstrapToken(request.token())
+        UUID tenantId = bootstrapTokenService.peekToken(request.token())
                 .orElseThrow(() -> new InvalidBootstrapTokenException("Invalid or expired bootstrap token"));
 
         // 3. verify tenant matches
@@ -83,7 +83,7 @@ public class TenantAuthService extends BaseAuthService<TenantUser, TenantUserRep
         }
 
         // 4. consume token (irreversible)
-        bootstrapTokenService.consumeBootstrapToken(request.token());
+        bootstrapTokenService.consumeToken(request.token());
 
         // 5. save user
         TenantUser owner = TenantUserMapper.toEntity(request);
