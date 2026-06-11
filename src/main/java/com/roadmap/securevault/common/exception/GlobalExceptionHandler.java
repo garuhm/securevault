@@ -26,7 +26,8 @@ public class GlobalExceptionHandler {
             BadCredentialsException.class,
             InvalidRefreshTokenException.class,
             InvalidCookieException.class,
-            InvalidBootstrapTokenException.class})
+            InvalidBootstrapTokenException.class,
+            InvalidInviteTokenException.class})
     public ResponseEntity<String> handleUnauthorizedException(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
     }
@@ -48,5 +49,10 @@ public class GlobalExceptionHandler {
                                 (existing, duplicate) -> existing));
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
+    }
+
+    @ExceptionHandler(value = IllegalStateException.class)
+    public ResponseEntity<String> handleIllegalStateException(IllegalStateException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 }
