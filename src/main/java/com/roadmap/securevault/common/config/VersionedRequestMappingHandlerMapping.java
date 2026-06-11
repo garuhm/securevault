@@ -15,8 +15,7 @@ public class VersionedRequestMappingHandlerMapping extends RequestMappingHandler
         RequestMappingInfo mapping = super.getMappingForMethod(method, handlerType);
         if (mapping == null) return null;
 
-        if (AnnotatedElementUtils.hasAnnotation(method, NoApiVersion.class) ||
-                AnnotatedElementUtils.hasAnnotation(handlerType, NoApiVersion.class)) {
+        if (AnnotatedElementUtils.hasAnnotation(method, NoApiVersion.class)) {
             return mapping;
         }
 
