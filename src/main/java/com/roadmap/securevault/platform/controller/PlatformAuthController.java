@@ -2,11 +2,13 @@ package com.roadmap.securevault.platform.controller;
 
 import com.roadmap.securevault.common.annotation.ApiVersion;
 import com.roadmap.securevault.common.controller.BaseAuthController;
+import com.roadmap.securevault.common.dto.LoginRequest;
 import com.roadmap.securevault.platform.dto.PlatformRegisterRequest;
 import com.roadmap.securevault.platform.entity.PlatformUser;
 import com.roadmap.securevault.platform.entity.enums.PlatformRole;
 import com.roadmap.securevault.platform.repo.PlatformUserRepository;
 import com.roadmap.securevault.platform.service.PlatformAuthService;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,5 +33,12 @@ public class PlatformAuthController extends BaseAuthController<PlatformUser, Pla
                                          @RequestParam PlatformRole role) {
         platformAuthService.register(credentials, role);
         return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<Void> login(@Valid @RequestBody LoginRequest credentials,
+                                      HttpServletResponse response) {
+        authService.login(credentials, response);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 }
