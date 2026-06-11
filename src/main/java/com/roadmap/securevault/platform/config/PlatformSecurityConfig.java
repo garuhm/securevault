@@ -29,7 +29,7 @@ public class PlatformSecurityConfig extends BaseSecurityConfig {
     @Bean
     @Order(1)
     public SecurityFilterChain platformSecurityFilterChain(HttpSecurity http) throws Exception {
-        http.securityMatcher("/platform/**");
+        http.securityMatcher("/platform/**", "/api/v1/platform/**");
 
         applyCommonSecurity(http, platformJwtFilter)
                 .authorizeHttpRequests(auth -> auth

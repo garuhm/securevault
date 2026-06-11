@@ -2,6 +2,7 @@ package com.roadmap.securevault.common.config;
 
 import com.roadmap.securevault.multitenancy.SchemaMultiTenantConnectionProvider;
 import com.roadmap.securevault.multitenancy.TenantIdentifierResolver;
+import org.hibernate.boot.model.naming.PhysicalNamingStrategySnakeCaseImpl;
 import org.hibernate.cfg.AvailableSettings;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,6 +31,8 @@ public class HibernateMultitenancyConfig {
         Map<String, Object> properties = new HashMap<>();
         properties.put(AvailableSettings.MULTI_TENANT_CONNECTION_PROVIDER, connectionProvider);
         properties.put(AvailableSettings.MULTI_TENANT_IDENTIFIER_RESOLVER, tenantIdentifierResolver);
+        properties.put(AvailableSettings.PHYSICAL_NAMING_STRATEGY,
+                new PhysicalNamingStrategySnakeCaseImpl());
 
         em.setJpaPropertyMap(properties);
         return em;

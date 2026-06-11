@@ -45,7 +45,7 @@ public abstract class BaseAuthService<U extends BaseUser & UserDetails, R extend
     @Transactional
     public void login(LoginRequest credentials, HttpServletResponse response) {
         U user = (U) userService.loadUserByUsername(credentials.username());
-        if (!passwordEncoder.matches(credentials.password(), user.getPassword())) {
+        if (!passwordEncoder.matches(credentials.password(),  user.getPassword())) {
             throw new BadCredentialsException("Username or password is incorrect.");
         }
         cookieService.addTokenCookies(

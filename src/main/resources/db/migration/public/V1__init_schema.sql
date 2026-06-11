@@ -5,7 +5,8 @@ CREATE TABLE platform_users (
                                 email VARCHAR(255) NOT NULL UNIQUE,
                                 password VARCHAR(255) NOT NULL,
                                 role VARCHAR(32) NOT NULL,
-                                created_at TIMESTAMP NOT NULL DEFAULT NOW()
+                                created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+                                updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 -- Tenants
@@ -15,7 +16,8 @@ CREATE TABLE tenants (
                          company_code VARCHAR(32) NOT NULL UNIQUE,
                          schema_name VARCHAR(64) NOT NULL UNIQUE,
                          status VARCHAR(16) NOT NULL DEFAULT 'PENDING',
-                         created_at TIMESTAMP NOT NULL DEFAULT NOW()
+                         created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+                         updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 -- Platform Refresh Tokens
@@ -31,6 +33,6 @@ INSERT INTO platform_users (username, email, password, role)
 VALUES (
            'owner',
            'owner@securevault.com',
-           '$2a$12$pngSTNSoMDkm7n9ANkFMOuBjBiGsfGkHHEduVHWIHBTsKMHBnSEmK',
+           '$2a$12$JbtwBQiLp9uDRErXWPZjneZzHCCSwykRe70pOV2k7aNBpej6KyQVW',
            'PLATFORM_OWNER'
        );
