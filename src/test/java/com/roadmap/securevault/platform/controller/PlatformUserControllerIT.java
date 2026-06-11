@@ -8,7 +8,7 @@ import com.roadmap.securevault.platform.entity.enums.PlatformRole;
 import com.roadmap.securevault.platform.repo.PlatformRefreshTokenRepository;
 import com.roadmap.securevault.platform.repo.PlatformUserRepository;
 import com.roadmap.securevault.test_util.testcontainers.AbstractIT;
-import com.roadmap.securevault.test_util.web.ApiVersioningResolver;
+import com.roadmap.securevault.common.util.ApiVersioningResolver;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;

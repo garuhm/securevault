@@ -1,4 +1,4 @@
-package com.roadmap.securevault.test_util.web;
+package com.roadmap.securevault.common.util;
 
 import com.roadmap.securevault.common.annotation.ApiVersion;
 import com.roadmap.securevault.common.annotation.NoApiVersion;
