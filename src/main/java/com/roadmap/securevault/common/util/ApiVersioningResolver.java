@@ -16,22 +16,26 @@ public class ApiVersioningResolver {
     private static String findInHierarchy(Class<?> controllerClass, String methodName) {
         if (controllerClass == null || controllerClass == Object.class) return null;
 
-        String version = Arrays.stream(controllerClass.getDeclaredMethods())
-                .filter(method -> method.getName().equals(methodName))
-                .map(method -> {
-                    if (AnnotatedElementUtils.hasAnnotation(method, NoApiVersion.class)) return null;
+        // find the method in this class
+        boolean methodFound = Arrays.stream(controllerClass.getDeclaredMethods())
+                .anyMatch(m -> m.getName().equals(methodName));
 
-                    ApiVersion methodVer = AnnotatedElementUtils.findMergedAnnotation(method, ApiVersion.class);
-                    if (methodVer != null) return methodVer.value();
+        if(methodFound) {
+            return Arrays.stream(controllerClass.getDeclaredMethods())
+                    .filter(method -> method.getName().equals(methodName))
+                    .map(method -> {
+                        if (AnnotatedElementUtils.hasAnnotation(method, NoApiVersion.class)) return null;
 
-                    ApiVersion classVer = AnnotatedElementUtils.findMergedAnnotation(controllerClass, ApiVersion.class);
-                    return classVer != null ? classVer.value() : null;
-                })
-                .filter(Objects::nonNull)
-                .findFirst()
-                .orElse(null);
+                        ApiVersion methodVer = AnnotatedElementUtils.findMergedAnnotation(method, ApiVersion.class);
+                        if (methodVer != null) return methodVer.value();
 
-        if (version != null) return version;
+                        ApiVersion classVer = AnnotatedElementUtils.findMergedAnnotation(controllerClass, ApiVersion.class);
+                        return classVer != null ? classVer.value() : null;
+                    })
+                    .filter(Objects::nonNull)
+                    .findFirst()
+                    .orElse(null);
+        }
 
         // check class-level annotation before walking up
         ApiVersion classVer = AnnotatedElementUtils.findMergedAnnotation(controllerClass, ApiVersion.class);
