@@ -23,6 +23,7 @@ CREATE TABLE invite_codes (
                               code VARCHAR(255) NOT NULL UNIQUE,
                               role VARCHAR(32) NOT NULL DEFAULT 'TENANT_MEMBER',
                               created_by UUID NOT NULL REFERENCES users(id),
+                              invitee_email VARCHAR(255) NOT NULL,
                               expires_at TIMESTAMP NOT NULL,
                               used_at TIMESTAMP,
                               created_at TIMESTAMP NOT NULL DEFAULT NOW()
