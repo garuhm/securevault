@@ -27,4 +27,9 @@ public class BootstrapTokenService {
         return redisTokenService.consumeToken(redisTokenProperties.bootstrapTokenPrefix(), token)
                 .map(UUID::fromString);
     }
+
+    public Optional<UUID> peekBootstrapToken(String token) {
+        return redisTokenService.peekToken(redisTokenProperties.bootstrapTokenPrefix(), token)
+                .map(UUID::fromString);
+    }
 }

@@ -33,6 +33,11 @@ public class RedisTokenService {
         return Optional.of(value);
     }
 
+    public Optional<String> peekToken(String keyPrefix, String token) {
+        String value = redisTemplate.opsForValue().get(keyPrefix + token);
+        return Optional.ofNullable(value);
+    }
+
     public boolean tokenExists(String keyPrefix, String token) {
         return Boolean.TRUE.equals(redisTemplate.hasKey(keyPrefix + token));
     }
