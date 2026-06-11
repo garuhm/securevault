@@ -18,10 +18,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 
 import java.util.Map;
 import java.util.UUID;
 
+@Service
 public class TenantAuthService extends BaseAuthService<TenantUser, TenantUserRepository> {
     private final BootstrapTokenService bootstrapTokenService;
 
@@ -49,7 +51,7 @@ public class TenantAuthService extends BaseAuthService<TenantUser, TenantUserRep
 
         Map<String, Object> extraClaims = Map.of(
                 "tenantId", tenant.getId().toString(),
-                "companyCode", tenant.getSchemaName()
+                "companyCode", tenant.getCompanyCode()
         );
 
         cookieService.addTokenCookies(
@@ -59,6 +61,7 @@ public class TenantAuthService extends BaseAuthService<TenantUser, TenantUserRep
         );
     }
 
+    @Transactional
     public void setup(TenantSetupRequest request, HttpServletResponse response, HttpServletRequest httpRequest) {
         Tenant tenant = (Tenant) httpRequest.getAttribute("tenant");
 
