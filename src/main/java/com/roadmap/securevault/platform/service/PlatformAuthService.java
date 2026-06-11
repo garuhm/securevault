@@ -38,10 +38,7 @@ public class PlatformAuthService extends BaseAuthService<PlatformUser, PlatformU
             throw new CredentialsTakenException("Email already exists");
         }
 
-        PlatformUser user = PlatformUserMapper.toEntity(
-                credentials.username(),
-                credentials.email(),
-                credentials.password());
+        PlatformUser user = PlatformUserMapper.toEntity(credentials);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setRole(role);
 
