@@ -1,8 +1,11 @@
 package com.roadmap.securevault.platform.config;
 
 import com.roadmap.securevault.common.config.security.BaseSecurityConfig;
+import com.roadmap.securevault.common.util.ApiVersioningResolver;
+import com.roadmap.securevault.platform.controller.PlatformAuthController;
 import com.roadmap.securevault.platform.filter.PlatformJwtFilter;
 import com.roadmap.securevault.platform.service.PlatformUserService;
+import com.roadmap.securevault.tenant.controller.TenantController;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -29,12 +32,15 @@ public class PlatformSecurityConfig extends BaseSecurityConfig {
     @Bean
     @Order(1)
     public SecurityFilterChain platformSecurityFilterChain(HttpSecurity http) throws Exception {
-        http.securityMatcher("/platform/**", "/api/v1/platform/**");
+        http.securityMatcher("/platform/**", "/api/*/platform/**");
+
+        String loginUrl = ApiVersioningResolver.resolve(PlatformAuthController.class, "login", "/platform/auth/login");
+        String registerTenantUrl = ApiVersioningResolver.resolve(TenantController.class, "registerTenant", "/platform/tenants/register");
 
         applyCommonSecurity(http, platformJwtFilter)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/platform/auth/login").permitAll()
-                        .requestMatchers("/platform/tenants/register").permitAll()
+                        .requestMatchers(loginUrl).permitAll()
+                        .requestMatchers(registerTenantUrl).permitAll()
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(platformAuthProvider());

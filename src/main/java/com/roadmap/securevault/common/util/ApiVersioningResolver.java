@@ -10,11 +10,11 @@ import java.util.Objects;
 public class ApiVersioningResolver {
     public static String resolve(Class<?> controllerClass, String methodName, String path) {
         String version = Arrays.stream(controllerClass.getDeclaredMethods())
-                .filter(m -> m.getName().equals(methodName))
-                .map(m -> {
-                    if (AnnotatedElementUtils.hasAnnotation(m, NoApiVersion.class)) return null;
+                .filter(method -> method.getName().equals(methodName))
+                .map(method -> {
+                    if (AnnotatedElementUtils.hasAnnotation(method, NoApiVersion.class)) return null;
 
-                    ApiVersion v = AnnotatedElementUtils.findMergedAnnotation(m, ApiVersion.class);
+                    ApiVersion v = AnnotatedElementUtils.findMergedAnnotation(method, ApiVersion.class);
                     if (v != null) return v.value();
 
                     ApiVersion classV = AnnotatedElementUtils.findMergedAnnotation(controllerClass, ApiVersion.class);
