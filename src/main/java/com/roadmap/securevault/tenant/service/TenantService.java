@@ -67,7 +67,7 @@ public class TenantService {
         Tenant approved = tenantStatusService.markAsApproved(tenant);
         tenantSchemaInitializer.migrateSchema(approved.getSchemaName());
 
-        String bootstrapToken = bootstrapTokenService.generateBootstrapToken(approved.getId());
+        String bootstrapToken = bootstrapTokenService.generateToken(approved.getId());
         notificationService.sendBootstrapLink(approved.getOwnerEmail(), bootstrapToken);
 
         return new TenantApprovalResponse(
