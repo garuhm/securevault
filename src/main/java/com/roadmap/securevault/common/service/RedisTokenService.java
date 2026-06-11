@@ -29,6 +29,7 @@ public class RedisTokenService {
         String key = keyPrefix + token;
         String value = redisTemplate.opsForValue().get(key);
         if (value == null) return Optional.empty();
+
         redisTemplate.delete(key);
         return Optional.of(value);
     }

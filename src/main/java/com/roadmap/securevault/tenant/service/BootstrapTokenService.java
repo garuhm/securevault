@@ -1,35 +1,24 @@
 package com.roadmap.securevault.tenant.service;
 
 import com.roadmap.securevault.common.config.properties.RedisProperties;
+import com.roadmap.securevault.common.service.BaseRedisEntityTokenService;
 import com.roadmap.securevault.common.service.RedisTokenService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-import java.util.UUID;
-
 @Service
-@RequiredArgsConstructor
-public class BootstrapTokenService {
+public class BootstrapTokenService extends BaseRedisEntityTokenService {
 
-    private final RedisTokenService redisTokenService;
-    private final RedisProperties redisTokenProperties;
+    private final RedisProperties redisProperties;
 
-    public String generateBootstrapToken(UUID tenantId) {
-        return redisTokenService.generateToken(
-                redisTokenProperties.bootstrapTokenPrefix(),
-                tenantId.toString(),
-                redisTokenProperties.bootstrapTokenTtlHours()
-        );
+    public BootstrapTokenService(RedisTokenService redisTokenService,
+                                 RedisProperties redisProperties) {
+        super(redisTokenService);
+        this.redisProperties = redisProperties;
     }
 
-    public Optional<UUID> consumeBootstrapToken(String token) {
-        return redisTokenService.consumeToken(redisTokenProperties.bootstrapTokenPrefix(), token)
-                .map(UUID::fromString);
-    }
+    @Override
+    protected String prefix() { return redisProperties.bootstrapTokenPrefix(); }
 
-    public Optional<UUID> peekBootstrapToken(String token) {
-        return redisTokenService.peekToken(redisTokenProperties.bootstrapTokenPrefix(), token)
-                .map(UUID::fromString);
-    }
+    @Override
+    protected long ttlHours() { return redisProperties.bootstrapTokenTtlHours(); }
 }
