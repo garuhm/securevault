@@ -1,6 +1,7 @@
 package com.roadmap.securevault.controller.helper;
 
 import com.roadmap.securevault.controller.annotation.ApiVersion;
+import com.roadmap.securevault.controller.annotation.NoApiVersion;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
@@ -13,6 +14,10 @@ public class VersionedRequestMappingHandlerMapping extends RequestMappingHandler
     protected RequestMappingInfo getMappingForMethod(Method method, Class<?> handlerType) {
         RequestMappingInfo mapping = super.getMappingForMethod(method, handlerType);
         if (mapping == null) return null;
+
+        if (AnnotatedElementUtils.hasAnnotation(method, NoApiVersion.class)) {
+            return mapping;
+        }
 
         ApiVersion version = findApiVersion(method, handlerType);
         if (version == null) return mapping;
