@@ -83,7 +83,7 @@ public class TenantService {
                 .orElseThrow(() -> new EntityNotFoundException("Tenant not found"));
 
         if (tenant.getStatus() == TenantStatus.SUSPENDED) {
-            throw new IllegalStateException("Tenant is already suspended");
+            throw new InvalidStateException("Tenant is already suspended");
         }
 
         tenantStatusService.markAsSuspended(tenant);
@@ -95,7 +95,7 @@ public class TenantService {
                 .orElseThrow(() -> new EntityNotFoundException("Tenant not found"));
 
         if (tenant.getStatus() != TenantStatus.SUSPENDED) {
-            throw new IllegalStateException("Tenant is not suspended");
+            throw new InvalidStateException("Tenant is not suspended");
         }
 
         tenantStatusService.markAsApproved(tenant);
