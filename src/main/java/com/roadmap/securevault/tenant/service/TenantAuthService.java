@@ -8,6 +8,8 @@ import com.roadmap.securevault.common.service.AccessJwtService;
 import com.roadmap.securevault.common.service.BaseAuthService;
 import com.roadmap.securevault.common.service.CookieService;
 import com.roadmap.securevault.tenant.dto.tenant.TenantSetupRequest;
+import com.roadmap.securevault.tenant.dto.tenant_user.TenantUserRegisterRequest;
+import com.roadmap.securevault.tenant.entity.InviteCode;
 import com.roadmap.securevault.tenant.entity.Tenant;
 import com.roadmap.securevault.tenant.entity.TenantUser;
 import com.roadmap.securevault.tenant.entity.enums.TenantRole;
@@ -26,6 +28,7 @@ import java.util.UUID;
 @Service
 public class TenantAuthService extends BaseAuthService<TenantUser, TenantUserRepository> {
     private final BootstrapTokenService bootstrapTokenService;
+    private final InviteService inviteService;
 
     public TenantAuthService(TenantUserRepository userRepository,
                                PasswordEncoder passwordEncoder,
@@ -34,10 +37,38 @@ public class TenantAuthService extends BaseAuthService<TenantUser, TenantUserRep
                                TenantRefreshJwtService baseRefreshJwtService,
                                CookieService cookieService,
                                CookieProperties cookieProperties,
-                               BootstrapTokenService bootstrapTokenService) {
+                               BootstrapTokenService bootstrapTokenService,
+                               InviteService inviteService) {
         super(userRepository, passwordEncoder, userService,
                 accessJwtService, baseRefreshJwtService, cookieService, cookieProperties);
         this.bootstrapTokenService = bootstrapTokenService;
+        this.inviteService = inviteService;
+    }
+
+    @Transactional
+    public void register(TenantUserRegisterRequest request, HttpServletResponse response, HttpServletRequest httpRequest) {
+        InviteCode invite = inviteService.consumeInvite(request);
+        Tenant tenant = (Tenant) httpRequest.getAttribute("tenant");
+
+        TenantUser user = TenantUser.builder()
+                .username(request.username())
+                .email(request.email())
+                .password(passwordEncoder.encode(request.password()))
+                .role(invite.getRole())
+                .build();
+
+        TenantUser saved = userRepository.save(user);
+
+        Map<String, Object> extraClaims = Map.of(
+                "tenantId", tenant.getId().toString(),
+                "companyCode", tenant.getCompanyCode()
+        );
+
+        cookieService.addTokenCookies(
+                response,
+                accessJwtService.generateAccessToken(saved, extraClaims),
+                baseRefreshJwtService.generateRefreshToken(saved).getId().toString()
+        );
     }
 
     @Transactional
