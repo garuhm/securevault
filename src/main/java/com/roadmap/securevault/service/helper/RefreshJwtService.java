@@ -33,7 +33,6 @@ public class RefreshJwtService {
                 .expiryDate(new Date(System.currentTimeMillis() + jwtProperties.refreshTokenExpiration()))
                 .build();
 
-        user.getRefreshTokens().add(refreshToken);
         refreshTokenRepository.saveAndFlush(refreshToken);
 
         return refreshToken;
