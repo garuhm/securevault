@@ -32,7 +32,7 @@ public class InviteController {
     @GetMapping
     @PreAuthorize("hasAnyAuthority('TENANT_OWNER', 'TENANT_ADMIN')")
     public ResponseEntity<Page<InviteResponse>> getInvites(
-            @RequestParam(required = false) Boolean used,
+            @RequestParam(required = false, defaultValue = "false") Boolean used,
             @RequestParam(required = false) TenantRole role,
             @ParameterObject Pageable pageable) {
 
