@@ -87,7 +87,11 @@ public class TenantService {
         }
 
         tenantStatusService.markAsSuspended(tenant);
-        tenantRefreshJwtService.revokeAllTenantTokens(tenant.getSchemaName());
+
+        // only revoke if schema exists (tenant has been approved and initialized)
+        if (tenant.getSchemaName() != null) {
+            tenantRefreshJwtService.revokeAllTenantTokens(tenant.getSchemaName());
+        }
     }
 
     public void unsuspendTenant(UUID tenantId) {

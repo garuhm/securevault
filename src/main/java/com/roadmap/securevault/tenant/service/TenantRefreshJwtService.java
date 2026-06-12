@@ -9,9 +9,9 @@ import com.roadmap.securevault.multitenancy.TenantContext;
 import com.roadmap.securevault.tenant.entity.TenantRefreshToken;
 import com.roadmap.securevault.tenant.entity.TenantUser;
 import com.roadmap.securevault.tenant.repo.TenantRefreshTokenRepository;
-
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
@@ -19,6 +19,8 @@ import java.util.Date;
 @Service
 public class TenantRefreshJwtService extends BaseRefreshJwtService<TenantUser, TenantRefreshToken> {
     private final TenantRefreshTokenRepository tenantRefreshTokenRepository;
+
+    @PersistenceContext private EntityManager entityManager;
 
     public TenantRefreshJwtService(CookieService cookieService,
                                      AccessJwtService accessJwtService,
@@ -37,13 +39,23 @@ public class TenantRefreshJwtService extends BaseRefreshJwtService<TenantUser, T
                 .build();
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional
     public void revokeAllTenantTokens(String schemaName) {
+        if (!schemaExists(schemaName)) return;
+
         TenantContext.setTenantId(schemaName);
         try {
             tenantRefreshTokenRepository.revokeAllTokens();
         } finally {
             TenantContext.clear();
         }
+    }
+
+    private boolean schemaExists(String schemaName) {
+        Long count = (Long) entityManager.createNativeQuery(
+                        "SELECT COUNT(*) FROM information_schema.schemata WHERE schema_name = :schemaName")
+                .setParameter("schemaName", schemaName)
+                .getSingleResult();
+        return count > 0;
     }
 }
