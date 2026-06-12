@@ -9,4 +9,6 @@ import java.util.UUID;
 public interface InviteCodeRepository extends
         JpaRepository<InviteCode, UUID>,
         JpaSpecificationExecutor<InviteCode>
-{}
+{
+    boolean existsByInviteeEmailAndUsedAtIsNull(String email);
+}
