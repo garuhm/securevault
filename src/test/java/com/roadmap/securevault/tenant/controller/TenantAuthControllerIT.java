@@ -132,7 +132,7 @@ class TenantAuthControllerIT extends AbstractIT {
     }
 
     <T> T inTenantTransaction(Supplier<T> action) {
-        TenantContext.setTenantId(tenant.getSchemaName());
+        TenantContext.setTenantSchema(tenant.getSchemaName());
         try {
             return new TransactionTemplate(transactionManager).execute(status -> action.get());
         } finally {

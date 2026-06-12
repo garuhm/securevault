@@ -43,7 +43,7 @@ public class TenantRefreshJwtService extends BaseRefreshJwtService<TenantUser, T
     public void revokeAllTenantTokens(String schemaName) {
         if (!schemaExists(schemaName)) return;
 
-        TenantContext.setTenantId(schemaName);
+        TenantContext.setTenantSchema(schemaName);
         try {
             tenantRefreshTokenRepository.revokeAllTokens();
         } finally {

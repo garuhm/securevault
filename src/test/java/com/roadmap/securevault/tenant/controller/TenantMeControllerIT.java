@@ -70,7 +70,7 @@ class TenantMeControllerIT extends AbstractIT {
 
         tenantSchemaInitializer.migrateSchema(tenant.getSchemaName());
 
-        TenantContext.setTenantId(tenant.getSchemaName());
+        TenantContext.setTenantSchema(tenant.getSchemaName());
         try {
             tenantUserRepository.saveAndFlush(TenantUser.builder()
                     .username(OWNER_USERNAME)
@@ -85,7 +85,7 @@ class TenantMeControllerIT extends AbstractIT {
 
     @AfterEach
     void tearDown() {
-        TenantContext.setTenantId(tenant.getSchemaName());
+        TenantContext.setTenantSchema(tenant.getSchemaName());
         try {
             tenantUserRepository.deleteAll();
         } finally {

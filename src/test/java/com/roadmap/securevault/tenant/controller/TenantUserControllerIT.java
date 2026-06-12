@@ -79,7 +79,7 @@ class TenantUserControllerIT extends AbstractIT {
 
         tenantSchemaInitializer.migrateSchema(tenant.getSchemaName());
 
-        TenantContext.setTenantId(tenant.getSchemaName());
+        TenantContext.setTenantSchema(tenant.getSchemaName());
         try {
             seedTenantUsers();
         } finally {
@@ -110,7 +110,7 @@ class TenantUserControllerIT extends AbstractIT {
 
     @AfterEach
     void tearDown() {
-        TenantContext.setTenantId(tenant.getSchemaName());
+        TenantContext.setTenantSchema(tenant.getSchemaName());
         try {
             tenantUserRepository.deleteAll();
         } finally {
@@ -165,7 +165,7 @@ class TenantUserControllerIT extends AbstractIT {
     }
 
     UUID userId(String username) {
-        TenantContext.setTenantId(tenant.getSchemaName());
+        TenantContext.setTenantSchema(tenant.getSchemaName());
         try {
             return tenantUserRepository.findByUsername(username).get().getId();
         } finally {
@@ -174,7 +174,7 @@ class TenantUserControllerIT extends AbstractIT {
     }
 
     boolean userExists(String username) {
-        TenantContext.setTenantId(tenant.getSchemaName());
+        TenantContext.setTenantSchema(tenant.getSchemaName());
         try {
             return tenantUserRepository.existsByUsername(username);
         } finally {
@@ -301,7 +301,7 @@ class TenantUserControllerIT extends AbstractIT {
         @Test
         @DisplayName("Member updates other member → 403")
         void memberCannotUpdateOtherMember() throws Exception {
-            TenantContext.setTenantId(tenant.getSchemaName());
+            TenantContext.setTenantSchema(tenant.getSchemaName());
             try {
                 tenantUserRepository.saveAndFlush(TenantUser.builder()
                         .username("member2")
@@ -367,7 +367,7 @@ class TenantUserControllerIT extends AbstractIT {
 
             assertThat(result.getResponse().getStatus()).isEqualTo(200);
 
-            TenantContext.setTenantId(tenant.getSchemaName());
+            TenantContext.setTenantSchema(tenant.getSchemaName());
             try {
                 assertThat(tenantUserRepository.findById(memberId).get().getRole())
                         .isEqualTo(TenantRole.TENANT_ADMIN);

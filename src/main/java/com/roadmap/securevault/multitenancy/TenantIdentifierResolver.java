@@ -8,7 +8,7 @@ public class TenantIdentifierResolver implements CurrentTenantIdentifierResolver
 
     @Override
     public String resolveCurrentTenantIdentifier() {
-        String tenant = TenantContext.getTenantId();
+        String tenant = TenantContext.getTenantSchema();
         return tenant != null ? tenant : "public";
     }
 

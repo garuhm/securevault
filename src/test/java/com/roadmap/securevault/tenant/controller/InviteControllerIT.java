@@ -83,7 +83,7 @@ class InviteControllerIT extends AbstractIT {
 
         tenantSchemaInitializer.migrateSchema(tenant.getSchemaName());
 
-        TenantContext.setTenantId(tenant.getSchemaName());
+        TenantContext.setTenantSchema(tenant.getSchemaName());
         try {
             seedTenantUsers();
         } finally {
@@ -114,7 +114,7 @@ class InviteControllerIT extends AbstractIT {
 
     @AfterEach
     void tearDown() {
-        TenantContext.setTenantId(tenant.getSchemaName());
+        TenantContext.setTenantSchema(tenant.getSchemaName());
         try {
             inviteCodeRepository.deleteAll();
             tenantUserRepository.deleteAll();
@@ -170,7 +170,7 @@ class InviteControllerIT extends AbstractIT {
     }
 
     InviteCode seedInvite(String inviteeEmail, TenantRole role, String createdByUsername, boolean used) {
-        TenantContext.setTenantId(tenant.getSchemaName());
+        TenantContext.setTenantSchema(tenant.getSchemaName());
         try {
             TenantUser creator = tenantUserRepository.findByUsername(createdByUsername).get();
 
@@ -194,7 +194,7 @@ class InviteControllerIT extends AbstractIT {
     }
 
     InviteCode getInvite(UUID id) {
-        TenantContext.setTenantId(tenant.getSchemaName());
+        TenantContext.setTenantSchema(tenant.getSchemaName());
         try {
             return inviteCodeRepository.findById(id).get();
         } finally {
@@ -203,7 +203,7 @@ class InviteControllerIT extends AbstractIT {
     }
 
     int findAllInvites() {
-        TenantContext.setTenantId(tenant.getSchemaName());
+        TenantContext.setTenantSchema(tenant.getSchemaName());
         try {
             return inviteCodeRepository.findAll().size();
         } finally {

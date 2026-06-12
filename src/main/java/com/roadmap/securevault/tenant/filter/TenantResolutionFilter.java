@@ -52,7 +52,7 @@ public class TenantResolutionFilter extends OncePerRequestFilter {
             return;
         }
 
-        TenantContext.setTenantId(tenant.getSchemaName());
+        TenantContext.setTenantSchema(tenant.getSchemaName());
         TenantContext.setCompanyCode(tenant.getCompanyCode());
         request.setAttribute("tenant", tenant);
 
