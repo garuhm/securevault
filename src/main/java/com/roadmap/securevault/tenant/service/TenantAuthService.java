@@ -118,7 +118,7 @@ public class TenantAuthService extends BaseAuthService<TenantUser, TenantUserRep
 
         // 5. save user
         TenantUser owner = TenantUserMapper.toEntity(request);
-        owner.setPassword(passwordEncoder.encode(owner.getPassword()));
+        owner.setPassword(passwordEncoder.encode(request.password()));
         owner.setRole(TenantRole.TENANT_OWNER);
         TenantUser saved = userRepository.save(owner);
 
