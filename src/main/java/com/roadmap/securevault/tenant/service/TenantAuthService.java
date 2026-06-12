@@ -60,7 +60,7 @@ public class TenantAuthService extends BaseAuthService<TenantUser, TenantUserRep
         TenantUser saved = userRepository.save(user);
 
         Map<String, Object> extraClaims = Map.of(
-                "tenantId", tenant.getId().toString(),
+                "tenantSchema", tenant.getId().toString(),
                 "companyCode", tenant.getCompanyCode()
         );
 
@@ -124,7 +124,7 @@ public class TenantAuthService extends BaseAuthService<TenantUser, TenantUserRep
 
         // 6. issue cookies
         Map<String, Object> extraClaims = Map.of(
-                "tenantId", tenant.getId().toString(),
+                "tenantSchema", tenant.getId().toString(),
                 "companyCode", tenant.getCompanyCode()
         );
         cookieService.addTokenCookies(
