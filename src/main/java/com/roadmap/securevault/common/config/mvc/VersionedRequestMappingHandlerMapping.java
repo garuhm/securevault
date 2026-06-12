@@ -1,4 +1,4 @@
-package com.roadmap.securevault.common.config;
+package com.roadmap.securevault.common.config.mvc;
 
 import com.roadmap.securevault.common.annotation.ApiVersion;
 import com.roadmap.securevault.common.annotation.NoApiVersion;

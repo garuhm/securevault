@@ -1,4 +1,4 @@
-package com.roadmap.securevault.common.config;
+package com.roadmap.securevault.common.config.mvc;
 
 import org.springframework.boot.webmvc.autoconfigure.WebMvcRegistrations;
 import org.springframework.context.annotation.Configuration;
