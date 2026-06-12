@@ -4,43 +4,39 @@ import com.roadmap.securevault.common.annotation.ApiVersion;
 import com.roadmap.securevault.common.annotation.NoApiVersion;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 
+import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.Objects;
+import java.util.stream.Stream;
 
 public class ApiVersioningResolver {
     public static String resolve(Class<?> controllerClass, String methodName, String path) {
-        String version = findInHierarchy(controllerClass, methodName);
-        return version != null ? "/api/" + version + path : path;
-    }
+        Method method = findDeclaringMethod(controllerClass, methodName);
 
-    private static String findInHierarchy(Class<?> controllerClass, String methodName) {
-        if (controllerClass == null || controllerClass == Object.class) return null;
-
-        // find the method in this class
-        boolean methodFound = Arrays.stream(controllerClass.getDeclaredMethods())
-                .anyMatch(m -> m.getName().equals(methodName));
-
-        if(methodFound) {
-            return Arrays.stream(controllerClass.getDeclaredMethods())
-                    .filter(method -> method.getName().equals(methodName))
-                    .map(method -> {
-                        if (AnnotatedElementUtils.hasAnnotation(method, NoApiVersion.class)) return null;
-
-                        ApiVersion methodVer = AnnotatedElementUtils.findMergedAnnotation(method, ApiVersion.class);
-                        if (methodVer != null) return methodVer.value();
-
-                        ApiVersion classVer = AnnotatedElementUtils.findMergedAnnotation(controllerClass, ApiVersion.class);
-                        return classVer != null ? classVer.value() : null;
-                    })
-                    .filter(Objects::nonNull)
-                    .findFirst()
-                    .orElse(null);
+        if (method != null) {
+            if (AnnotatedElementUtils.hasAnnotation(method, NoApiVersion.class)) {
+                return path; // explicit opt-out wins, regardless of class-level annotations
+            }
+            ApiVersion methodVer = AnnotatedElementUtils.findMergedAnnotation(method, ApiVersion.class);
+            if (methodVer != null) {
+                return "/api/" + methodVer.value() + path;
+            }
         }
 
-        // check class-level annotation before walking up
+        // no method-level decision -> use the ORIGINAL class's class-level annotation
         ApiVersion classVer = AnnotatedElementUtils.findMergedAnnotation(controllerClass, ApiVersion.class);
-        if (classVer != null) return classVer.value();
+        return classVer != null ? "/api/" + classVer.value() + path : path;
+    }
 
-        return findInHierarchy(controllerClass.getSuperclass(), methodName);
+    private static Method findDeclaringMethod(Class<?> controllerClass, String methodName) {
+        return Stream
+                .<Class<?>>
+                        iterate(
+                                controllerClass,
+                                class_ -> class_ != null && class_ != Object.class,
+                                Class::getSuperclass)
+                .flatMap(c -> Arrays.stream(c.getDeclaredMethods()))
+                .filter(m -> m.getName().equals(methodName))
+                .findFirst()
+                .orElse(null);
     }
 }
