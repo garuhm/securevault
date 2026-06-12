@@ -18,7 +18,9 @@ import java.util.stream.Collectors;
 public class GlobalExceptionHandler {
     @ExceptionHandler(value = {
             CredentialsTakenException.class,
-            InvalidStateException.class})
+            InvalidStateException.class,
+            DuplicateInviteException.class,
+    })
     public ResponseEntity<String> handleConflictException(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
     }
