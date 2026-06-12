@@ -20,7 +20,7 @@ CREATE TABLE refresh_tokens (
 -- Invite codes
 CREATE TABLE invite_codes (
                               id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-                              code VARCHAR(255) NOT NULL UNIQUE,
+                              code VARCHAR(255) UNIQUE,
                               role VARCHAR(32) NOT NULL DEFAULT 'TENANT_MEMBER',
                               created_by UUID NOT NULL REFERENCES users(id),
                               invitee_email VARCHAR(255) NOT NULL,
