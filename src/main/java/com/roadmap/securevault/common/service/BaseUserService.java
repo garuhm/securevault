@@ -4,9 +4,9 @@ import com.roadmap.securevault.common.dto.UserResponse;
 import com.roadmap.securevault.common.dto.UserUpdateRequest;
 import com.roadmap.securevault.common.entity.BaseUser;
 import com.roadmap.securevault.common.exception.CredentialsTakenException;
+import com.roadmap.securevault.common.exception.InvalidStateException;
 import com.roadmap.securevault.common.repo.BaseUserRepository;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -15,6 +15,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -84,7 +85,7 @@ public abstract class BaseUserService <
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
         if (isOwnerRole(user)) {
-            throw new IllegalStateException("Owner account cannot be deleted");
+            throw new InvalidStateException("Owner account cannot be deleted");
         }
 
         userRepository.deleteById(userId);
