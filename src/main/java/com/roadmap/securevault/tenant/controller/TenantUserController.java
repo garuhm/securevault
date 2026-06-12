@@ -57,7 +57,7 @@ public class TenantUserController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('TENANT_OWNER')")
+    @PreAuthorize("@securityEvaluator.isAbove(authentication, #id, T(com.roadmap.securevault.tenant.entity.enums.TenantRole))")
     public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
         tenantUserService.deleteUser(id);
         return ResponseEntity.noContent().build();
