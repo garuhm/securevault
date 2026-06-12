@@ -26,7 +26,7 @@ public class TenantJwtFilter extends BaseJwtFilter {
         Tenant tenant = (Tenant) request.getAttribute("tenant");
         if (tenant == null) return false;
 
-        String tokenTenantId = accessJwtService.extractClaim(token, "tenantId");
+        String tokenTenantId = accessJwtService.extractClaim(token, "tenantSchema");
         return tenant.getId().toString().equals(tokenTenantId);
     }
 }

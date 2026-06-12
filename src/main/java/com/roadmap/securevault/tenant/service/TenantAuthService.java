@@ -81,7 +81,7 @@ public class TenantAuthService extends BaseAuthService<TenantUser, TenantUserRep
         Tenant tenant = (Tenant) request.getAttribute("tenant");
 
         Map<String, Object> extraClaims = Map.of(
-                "tenantId", tenant.getId().toString(),
+                "tenantSchema", tenant.getId().toString(),
                 "companyCode", tenant.getCompanyCode()
         );
 
