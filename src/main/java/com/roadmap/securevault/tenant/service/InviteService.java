@@ -2,7 +2,9 @@ package com.roadmap.securevault.tenant.service;
 
 import com.roadmap.securevault.common.config.properties.RedisProperties;
 import com.roadmap.securevault.common.exception.CredentialsTakenException;
+import com.roadmap.securevault.common.exception.DuplicateInviteException;
 import com.roadmap.securevault.common.exception.InvalidInviteTokenException;
+import com.roadmap.securevault.common.exception.InvalidStateException;
 import com.roadmap.securevault.common.service.NotificationService;
 import com.roadmap.securevault.common.spec.EntitySpecification;
 import com.roadmap.securevault.tenant.dto.invite.InviteCreateRequest;
@@ -15,13 +17,13 @@ import com.roadmap.securevault.tenant.mapper.InviteMapper;
 import com.roadmap.securevault.tenant.repo.InviteCodeRepository;
 import com.roadmap.securevault.tenant.repo.TenantUserRepository;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -38,7 +40,7 @@ public class InviteService {
 
     public Page<InviteResponse> getInvites(Boolean used, TenantRole role, Pageable pageable) {
         Specification<InviteCode> spec = Specification
-                .<InviteCode>where(used == null ? null :
+                .<InviteCode>where(
                         used ? (r, q, cb) -> cb.isNotNull(r.get("usedAt"))
                         : (r, q, cb) -> cb.isNull(r.get("usedAt")))
                 .and(EntitySpecification.equal("role", role));
@@ -61,6 +63,10 @@ public class InviteService {
 
         if (tenantUserRepository.existsByEmail(request.email())) {
             throw new CredentialsTakenException("User with this email already exists in this tenant");
+        }
+
+        if (inviteCodeRepository.existsByInviteeEmailAndUsedAtIsNull(request.email())) {
+            throw new DuplicateInviteException("An active invite for this email already exists");
         }
 
         InviteCode invite = InviteCode.builder()
@@ -120,7 +126,7 @@ public class InviteService {
                 .orElseThrow(() -> new EntityNotFoundException("Invite not found"));
 
         if (invite.getUsedAt() != null) {
-            throw new IllegalStateException("Cannot revoke an already used invite");
+            throw new InvalidStateException("Cannot revoke an already used invite");
         }
 
         inviteTokenService.consumeToken(invite.getCode());
