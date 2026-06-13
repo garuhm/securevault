@@ -1,7 +1,6 @@
 package com.roadmap.securevault.service.helper;
 
 import com.roadmap.securevault.config.properties.CookieProperties;
-import com.roadmap.securevault.config.properties.JwtProperties;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -13,22 +12,22 @@ import java.util.Arrays;
 @Service
 @RequiredArgsConstructor
 public class CookieService {
-    private final JwtProperties jwtProperties;
     private final CookieProperties cookieProperties;
-    
-    public void addTokenCookies(HttpServletResponse response, String accessToken, String refreshToken) {
+
+    public void addTokenCookies(HttpServletResponse response, String accessToken, long accessTokenExpiresInSeconds,
+                                String refreshToken, long refreshTokenExpiresInSeconds) {
         Cookie access = new Cookie(cookieProperties.accessTokenCookieName(), accessToken);
         access.setPath("/");
         access.setHttpOnly(true);
         access.setSecure(false);
-        access.setMaxAge((int) (jwtProperties.accessTokenExpiration() / 1000));
-        
+        access.setMaxAge((int) accessTokenExpiresInSeconds);
+
         Cookie refresh = new Cookie(cookieProperties.refreshTokenCookieName(), refreshToken);
         refresh.setPath(cookieProperties.refreshTokenCookiePath());
         refresh.setHttpOnly(true);
         refresh.setSecure(false);
-        refresh.setMaxAge((int) (jwtProperties.refreshTokenExpiration() / 1000));
-        
+        refresh.setMaxAge((int) refreshTokenExpiresInSeconds);
+
         response.addCookie(access);
         response.addCookie(refresh);
     }

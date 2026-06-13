@@ -27,14 +27,22 @@ public class AuthService {
         KeycloakTokenResponse tokens = keycloakAuthClient.passwordGrantLogin(
                 credentials.username(), credentials.password());
 
-        cookieService.addTokenCookies(response, tokens.accessToken(), tokens.refreshToken());
+        cookieService.addTokenCookies(response,
+                tokens.accessToken(),
+                tokens.expiresIn(),
+                tokens.refreshToken(),
+                tokens.refreshExpiresIn());
     }
 
     public void login(LoginRequest credentials, HttpServletResponse response) {
         KeycloakTokenResponse tokens = keycloakAuthClient.passwordGrantLogin(
                 credentials.username(), credentials.password());
 
-        cookieService.addTokenCookies(response, tokens.accessToken(), tokens.refreshToken());
+        cookieService.addTokenCookies(response,
+                tokens.accessToken(),
+                tokens.expiresIn(),
+                tokens.refreshToken(),
+                tokens.refreshExpiresIn());
     }
 
     public void refreshToken(HttpServletRequest request, HttpServletResponse response) {
@@ -47,7 +55,11 @@ public class AuthService {
 
         KeycloakTokenResponse tokens = keycloakAuthClient.refreshGrant(refreshToken);
 
-        cookieService.addTokenCookies(response, tokens.accessToken(), tokens.refreshToken());
+        cookieService.addTokenCookies(response,
+                tokens.accessToken(),
+                tokens.expiresIn(),
+                tokens.refreshToken(),
+                tokens.refreshExpiresIn());
     }
 
     public void logout(HttpServletRequest request, HttpServletResponse response) {
