@@ -2,19 +2,16 @@ package com.roadmap.securevault.config;
 
 import com.roadmap.securevault.config.properties.CookieProperties;
 import com.roadmap.securevault.filter.JwtFilter;
-import com.roadmap.securevault.service.helper.AccessJwtService;
+import com.roadmap.securevault.service.UserService;
 import com.roadmap.securevault.service.helper.CookieService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -22,9 +19,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @RequiredArgsConstructor
 public class SecurityConfig {
-    private final UserDetailsService userDetailsService;
-    private final PasswordEncoder passwordEncoder;
-    private final AccessJwtService accessJwtService;
+    private final JwtDecoder jwtDecoder;
+    private final UserService userService;
     private final CookieService cookieService;
     private final CookieProperties cookieProperties;
 
@@ -38,11 +34,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(
                         auth -> auth
                                 .requestMatchers("/auth/**").permitAll()
-                                .requestMatchers("/oauth2/**").permitAll()
-                                .requestMatchers("/login/oauth2/**").permitAll()
-//                                .requestMatchers("/api/v1/me").permitAll()
                                 .anyRequest().authenticated())
-                .authenticationProvider(authenticationProvider())
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((request, response, authException) -> {
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -59,14 +51,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider provider =  new DaoAuthenticationProvider(userDetailsService);
-        provider.setPasswordEncoder(passwordEncoder);
-        return provider;
+    public JwtFilter jwtAuthFilter() {
+        return new JwtFilter(jwtDecoder, userService, cookieService, cookieProperties);
     }
 
-    @Bean
-    public JwtFilter jwtAuthFilter() {
-        return new JwtFilter(accessJwtService, userDetailsService, cookieService, cookieProperties);
-    }
-}
