@@ -54,4 +54,5 @@ public class SecurityConfig {
     public JwtFilter jwtAuthFilter() {
         return new JwtFilter(jwtDecoder, userService, cookieService, cookieProperties);
     }
+}
 
