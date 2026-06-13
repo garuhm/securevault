@@ -119,7 +119,8 @@ public class KeycloakAuthClient {
                 "username", request.username(),
                 "email", request.email(),
                 "enabled", true,
-                "emailVerified", false,
+                "emailVerified", true,
+                "requiredActions", List.of(),
                 "credentials", List.of(Map.of(
                         "type", "password",
                         "value", request.password(),

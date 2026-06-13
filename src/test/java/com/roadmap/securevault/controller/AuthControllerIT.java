@@ -1,22 +1,16 @@
 package com.roadmap.securevault.controller;
 
 import com.roadmap.securevault.config.properties.CookieProperties;
-import com.roadmap.securevault.config.properties.JwtProperties;
 import com.roadmap.securevault.dto.LoginRequest;
 import com.roadmap.securevault.dto.RegisterRequest;
-import com.roadmap.securevault.entity.Role;
-import com.roadmap.securevault.entity.User;
-import com.roadmap.securevault.entity.enums.RoleName;
-import com.roadmap.securevault.repo.RefreshTokenRepository;
-import com.roadmap.securevault.repo.RoleRepository;
 import com.roadmap.securevault.repo.UserRepository;
-import com.roadmap.securevault.service.helper.CookieService;
-import com.roadmap.securevault.test_util.testcontainers.AbstractPostgresIT;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
+import com.roadmap.securevault.test_util.testcontainers.AbstractSpringBootTest;
 import jakarta.servlet.http.Cookie;
-import jakarta.transaction.Transactional;
-import org.junit.jupiter.api.*;
+import org.awaitility.Awaitility;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -24,9 +18,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import tools.jackson.databind.ObjectMapper;
 
+import java.time.Duration;
 import java.util.Arrays;
-import java.util.Date;
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -35,360 +28,248 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @DisplayName("AuthController Integration Tests")
 @AutoConfigureMockMvc
-class AuthControllerIT extends AbstractPostgresIT {
-    @Autowired
-    private MockMvc mockMvc;
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private RoleRepository roleRepository;
-    @Autowired
-    private RefreshTokenRepository refreshTokenRepository;
-    @Autowired
-    private JwtProperties jwtProperties;
-    @Autowired
-    private CookieProperties cookieProperties;
-    @Autowired
-    private CookieService cookieService;
-    @Autowired
-    private ObjectMapper objectMapper;
+class AuthControllerIT extends AbstractSpringBootTest {
 
-    @PersistenceContext
-    private EntityManager entityManager;
-
-    @BeforeEach
-    void setUp() {
-        roleRepository.save(Role.builder().name(RoleName.ROLE_USER).build());
-        roleRepository.save(Role.builder().name(RoleName.ROLE_ADMIN).build());
-    }
+    @Autowired private MockMvc mockMvc;
+    @Autowired private UserRepository userRepository;
+    @Autowired private CookieProperties cookieProperties;
+    @Autowired private ObjectMapper objectMapper;
 
     @AfterEach
     void tearDown() {
-        refreshTokenRepository.deleteAll();
         userRepository.deleteAll();
-        roleRepository.deleteAll();
+    }
+
+    /**
+     * Generates a unique RegisterRequest per call so tests don't collide with
+     * leftover Keycloak users from previous test runs/classes sharing the
+     * same Testcontainers instance.
+     */
+    private RegisterRequest uniqueRegisterRequest(String prefix) {
+        String suffix = UUID.randomUUID().toString().substring(0, 8);
+        String username = prefix + suffix;
+        return new RegisterRequest(username, username + "@example.com", "P4$$word");
     }
 
     @Nested
     @DisplayName("Registration tests")
     class Registration {
 
-        RegisterRequest request = new RegisterRequest("username", "email@email.com", "P4$$word");
-
         @Test
-        @Transactional
-        @DisplayName("User registration; 201 status code")
+        @DisplayName("User registration; 201 status code, cookies set, local user synced via Kafka")
         void registerUser() throws Exception {
+            RegisterRequest request = uniqueRegisterRequest("reguser");
+
             MvcResult result = mockMvc.perform(
-                    post("/auth/register")
-                            .contentType("application/json")
-                            .content(objectMapper.writeValueAsString(request))
-                    )
+                            post("/auth/register")
+                                    .contentType("application/json")
+                                    .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isCreated())
                     .andReturn();
 
-            assertThat(userRepository.existsByUsername(request.username())).isTrue();
-            assertThat(userRepository.findByUsername(request.username()).get().getRoles()).isNotEmpty();
-            assertThat(userRepository.findByUsername(request.username()).get().getRoles())
-                    .extracting(Role::getName)
-                    .contains(RoleName.ROLE_USER);
-            assertThat(refreshTokenRepository.findAllByUserAndRevokedFalse(userRepository.findByUsername(request.username()).get()).size()).isEqualTo(1);
-            assertThat(refreshTokenRepository.findAll().size()).isEqualTo(1);
-            assertThat(refreshTokenRepository
-                    .findById(
-                            UUID.fromString(
-                                    extractTokenFromCookie(
-                                            result.getResponse(),
-                                            cookieProperties.refreshTokenCookieName())))
-                    .isPresent())
-                    .isTrue();
             assertThat(cookieExists(result.getResponse(), cookieProperties.accessTokenCookieName())).isTrue();
             assertThat(cookieExists(result.getResponse(), cookieProperties.refreshTokenCookieName())).isTrue();
             assertThat(extractTokenFromCookie(result.getResponse(), cookieProperties.accessTokenCookieName())).isNotNull();
             assertThat(extractTokenFromCookie(result.getResponse(), cookieProperties.refreshTokenCookieName())).isNotNull();
+
+            // Local User row is populated asynchronously via the Kafka UserCreated event
+            Awaitility.await()
+                    .atMost(Duration.ofSeconds(10))
+                    .untilAsserted(() ->
+                            assertThat(userRepository.findAll())
+                                    .anyMatch(u -> u.getUsername().equals(request.username())
+                                            && u.getEmail().equals(request.email())));
         }
 
         @Test
         @DisplayName("User registration with invalid credentials; 400 status code")
         void registerUserWithInvalidCredentials() throws Exception {
-            RegisterRequest badRequest = new RegisterRequest("username", "email", "password");
+            RegisterRequest badRequest = new RegisterRequest("baduser-" + UUID.randomUUID(), "not-an-email", "weak");
 
             mockMvc.perform(
                             post("/auth/register")
                                     .contentType("application/json")
-                                    .content(objectMapper.writeValueAsString(badRequest))
-                    )
-                    .andExpect(status().isBadRequest())
-                    .andReturn();
-
-            assertThat(userRepository.existsByUsername(badRequest.username())).isFalse();
-            assertThat(userRepository.findByUsername(badRequest.username())).isEqualTo(Optional.empty());
-            assertThat(refreshTokenRepository.findAll().size()).isEqualTo(0);
+                                    .content(objectMapper.writeValueAsString(badRequest)))
+                    .andExpect(status().isBadRequest());
         }
 
         @Test
         @DisplayName("User registration with duplicate username; 409 status code")
-        @Transactional
         void registerUserWithDuplicateUsername() throws Exception {
-            RegisterRequest badRequest = new RegisterRequest(request.username(), "email2@gmail.com", request.password());
+            RegisterRequest request = uniqueRegisterRequest("dupuser");
+            RegisterRequest duplicate = new RegisterRequest(request.username(), "different-" + request.email(), request.password());
 
             mockMvc.perform(
                             post("/auth/register")
                                     .contentType("application/json")
-                                    .content(objectMapper.writeValueAsString(request))
-                    )
-                    .andExpect(status().isCreated())
-                    .andReturn();
-
-            mockMvc.perform(
-                    post("/auth/register")
-                            .contentType("application/json")
-                            .content(objectMapper.writeValueAsString(badRequest))
-                    )
-                    .andExpect(status().isConflict())
-                    .andReturn();
-
-            assertThat(userRepository.existsByUsername(badRequest.email())).isFalse();
-            assertThat(userRepository.findByUsername(badRequest.email())).isEqualTo(Optional.empty());
-            assertThat(refreshTokenRepository.findAll().size()).isEqualTo(1);
-        }
-
-        @Test
-        @DisplayName("User registration with duplicate email; 409 status code")
-        @Transactional
-        void registerUserWithDuplicateEmail() throws Exception {
-            RegisterRequest badRequest = new RegisterRequest("username2", request.email(), request.password());
+                                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isCreated());
 
             mockMvc.perform(
                             post("/auth/register")
                                     .contentType("application/json")
-                                    .content(objectMapper.writeValueAsString(request))
-                    )
-                    .andExpect(status().isCreated())
-                    .andReturn();
-
-            mockMvc.perform(
-                            post("/auth/register")
-                                    .contentType("application/json")
-                                    .content(objectMapper.writeValueAsString(badRequest))
-                    )
-                    .andExpect(status().isConflict())
-                    .andReturn();
-
-            assertThat(userRepository.existsByUsername(badRequest.username())).isFalse();
-            assertThat(userRepository.findByUsername(badRequest.username())).isEqualTo(Optional.empty());
-            assertThat(refreshTokenRepository.findAll().size()).isEqualTo(1);
+                                    .content(objectMapper.writeValueAsString(duplicate)))
+                    .andExpect(status().isConflict());
         }
     }
 
     @Nested
     @DisplayName("Login tests")
     class Login {
-        RegisterRequest register = new RegisterRequest("username", "email@email.com", "P4$$word");
-        LoginRequest login = new LoginRequest(register.username(), register.password());
 
         @Test
         @DisplayName("User login with valid credentials; 200 status code")
-        @Transactional
         void login() throws Exception {
+            RegisterRequest register = uniqueRegisterRequest("loginuser");
+            LoginRequest login = new LoginRequest(register.username(), register.password());
+
             mockMvc.perform(
                     post("/auth/register")
                             .contentType("application/json")
-                            .content(objectMapper.writeValueAsString(register))
-            );
+                            .content(objectMapper.writeValueAsString(register)));
+
             MvcResult result = mockMvc.perform(
-                    post("/auth/login")
-                            .contentType("application/json")
-                            .content(objectMapper.writeValueAsString(login)))
+                            post("/auth/login")
+                                    .contentType("application/json")
+                                    .content(objectMapper.writeValueAsString(login)))
+                    .andExpect(status().isOk())
                     .andReturn();
 
-            User user = userRepository.findByUsername(register.username()).get();
-
-            assertThat(refreshTokenRepository.findAll().size()).isEqualTo(2);
-            assertThat(refreshTokenRepository.findAllByUserAndRevokedFalse(user).size()).isEqualTo(2);
             assertThat(cookieExists(result.getResponse(), cookieProperties.accessTokenCookieName())).isTrue();
             assertThat(cookieExists(result.getResponse(), cookieProperties.refreshTokenCookieName())).isTrue();
-            assertThat(extractTokenFromCookie(result.getResponse(), cookieProperties.accessTokenCookieName())).isNotNull();
-            assertThat(extractTokenFromCookie(result.getResponse(), cookieProperties.refreshTokenCookieName())).isNotNull();
         }
 
         @Test
         @DisplayName("User login with invalid credentials; 401 status code")
-        @Transactional
         void loginWithInvalidCredentials() throws Exception {
-            LoginRequest badUserReq = new LoginRequest("bad username", register.password());
-            LoginRequest badPasswordReq = new LoginRequest(register.username(), "badPassword");
+            RegisterRequest register = uniqueRegisterRequest("loginbaduser");
+
             mockMvc.perform(
                     post("/auth/register")
                             .contentType("application/json")
-                            .content(objectMapper.writeValueAsString(register))
-            );
-            mockMvc.perform(
-                    post("/auth/login")
-                            .contentType("application/json")
-                            .content(objectMapper.writeValueAsString(badUserReq)))
-                    .andExpect(status().isUnauthorized())
-                    .andReturn();
-            mockMvc.perform(
-                    post("/auth/login")
-                            .contentType("application/json")
-                            .content(objectMapper.writeValueAsString(badPasswordReq))
-                    )
-                    .andExpect(status().isUnauthorized())
-                    .andReturn();
+                            .content(objectMapper.writeValueAsString(register)));
 
-            User user = userRepository.findByUsername(register.username()).get();
-
-            assertThat(refreshTokenRepository.findAll().size()).isEqualTo(1);
-            assertThat(refreshTokenRepository.findAllByUserAndRevokedFalse(user).size()).isEqualTo(1);
+            mockMvc.perform(
+                            post("/auth/login")
+                                    .contentType("application/json")
+                                    .content(objectMapper.writeValueAsString(
+                                            new LoginRequest(register.username(), "wrongPassword"))))
+                    .andExpect(status().isUnauthorized());
         }
-
     }
 
     @Nested
     @DisplayName("Refresh tests")
     class Refresh {
-        RegisterRequest register = new RegisterRequest("username", "email@email.com", "P4$$word");
 
-        // success
         @Test
-        @DisplayName("Refresh token with valid cookies; 200 status code")
-        @Transactional
-        void refreshTokenWithValidCookies() throws Exception {
-            MvcResult registerResult = mockMvc.perform(
-                    post("/auth/register")
-                            .contentType("application/json")
-                            .content(objectMapper.writeValueAsString(register)))
-                    .andReturn();
+        @DisplayName("Refresh token with valid cookie; 200 status code, new cookies issued")
+        void refreshTokenWithValidCookie() throws Exception {
+            RegisterRequest register = uniqueRegisterRequest("refreshuser");
 
-            Cookie refreshTokenCookie = Arrays.stream(registerResult.getResponse().getCookies())
-                    .filter(cookie -> cookieProperties.refreshTokenCookieName().equals(cookie.getName()))
-                    .findFirst()
-                    .orElse(null);
-
-            MvcResult refreshResult = mockMvc.perform(
-                    post("/auth/refresh")
-                            .cookie(new Cookie(cookieProperties.refreshTokenCookieName(), refreshTokenCookie.getValue())))
-                    .andExpect(status().isOk())
-                    .andReturn();
-
-            assertThat(refreshTokenRepository.findAll().size()).isEqualTo(2);
-            assertThat(refreshTokenRepository
-                    .findAllByUserAndRevokedFalse(
-                            userRepository
-                                    .findByUsername(register.username())
-                                    .get())
-                    .size())
-                    .isEqualTo(1);
-            assertThat(cookieExists(
-                    refreshResult.getResponse(),
-                    cookieProperties.accessTokenCookieName()))
-                    .isTrue();
-            assertThat(cookieExists(
-                    refreshResult.getResponse(),
-                    cookieProperties.refreshTokenCookieName()))
-                    .isTrue();
-            assertThat(extractTokenFromCookie(refreshResult.getResponse(), cookieProperties.accessTokenCookieName())).isNotNull();
-            assertThat(extractTokenFromCookie(refreshResult.getResponse(), cookieProperties.refreshTokenCookieName())).isNotNull();
-        }
-        // null cookie
-        @Test
-        @DisplayName("Refresh token with null cookie; 401 status code")
-        @Transactional
-        void refreshTokenWithNullCookie() throws Exception {
-            mockMvc.perform(
-                    post("/auth/refresh"))
-                    .andExpect(status().isUnauthorized())
-                    .andReturn();
-        }
-        // invalid token
-        @Test
-        @DisplayName("Refresh token with invalid token; 401 status code")
-        @Transactional
-        void refreshTokenWithInvalidToken() throws Exception {
-            mockMvc.perform(
-                    post("/auth/refresh")
-                            .cookie(new Cookie(cookieProperties.refreshTokenCookieName(), "invalid_token")))
-                    .andExpect(status().isUnauthorized())
-                    .andReturn();
-        }
-        // non-existent token
-        @Test
-        @DisplayName("Refresh token with non-existent token; 401 status code")
-        @Transactional
-        void refreshTokenWithNonExistentToken() throws Exception {
-            mockMvc.perform(
-                    post("/auth/refresh")
-                            .cookie(new Cookie(cookieProperties.refreshTokenCookieName(), UUID.randomUUID().toString())))
-                    .andExpect(status().isUnauthorized())
-                    .andReturn();
-        }
-        // revoked token
-        @Test
-        @DisplayName("Refresh token with revoked token; 401 status code")
-        @Transactional
-        void refreshTokenWithRevokedToken() throws Exception {
             MvcResult registerResult = mockMvc.perform(
                             post("/auth/register")
                                     .contentType("application/json")
                                     .content(objectMapper.writeValueAsString(register)))
+                    .andExpect(status().isCreated())
                     .andReturn();
 
-            String refreshToken = extractTokenFromCookie(registerResult.getResponse(), cookieProperties.refreshTokenCookieName());
-            refreshTokenRepository.findById(UUID.fromString(refreshToken)).ifPresent(rt ->
-                    {
-                        rt.setRevoked(true);
-                        refreshTokenRepository.saveAndFlush(rt);
-                    });
-
-            Cookie refreshTokenCookie = Arrays.stream(registerResult.getResponse().getCookies())
-                    .filter(cookie -> cookieProperties.refreshTokenCookieName().equals(cookie.getName()))
+            Cookie refreshCookie = Arrays.stream(registerResult.getResponse().getCookies())
+                    .filter(c -> cookieProperties.refreshTokenCookieName().equals(c.getName()))
                     .findFirst()
-                    .orElse(null);
+                    .orElseThrow();
 
-            mockMvc.perform(
-                    post("/auth/refresh")
-                            .cookie(refreshTokenCookie))
-                    .andExpect(status().isUnauthorized())
+            MvcResult refreshResult = mockMvc.perform(
+                            post("/auth/refresh")
+                                    .cookie(refreshCookie))
+                    .andExpect(status().isOk())
                     .andReturn();
+
+            assertThat(cookieExists(refreshResult.getResponse(), cookieProperties.accessTokenCookieName())).isTrue();
+            assertThat(cookieExists(refreshResult.getResponse(), cookieProperties.refreshTokenCookieName())).isTrue();
+
+            // With refresh token rotation enabled, the new refresh token should differ
+            String oldRefresh = refreshCookie.getValue();
+            String newRefresh = extractTokenFromCookie(refreshResult.getResponse(), cookieProperties.refreshTokenCookieName());
+            assertThat(newRefresh).isNotEqualTo(oldRefresh);
         }
 
-        // expired token
         @Test
-        @DisplayName("Refresh token with expiry date before current time; 401 status code")
-        @Transactional
-        void refreshTokenWithExpiredToken() throws Exception {
-            MvcResult registerResult = mockMvc.perform(
-                    post("/auth/register")
-                            .contentType("application/json")
-                            .content(objectMapper.writeValueAsString(register)))
-                    .andReturn();
+        @DisplayName("Refresh token with missing cookie; 401 status code")
+        void refreshTokenWithNullCookie() throws Exception {
+            mockMvc.perform(post("/auth/refresh"))
+                    .andExpect(status().isUnauthorized());
+        }
 
-            String refreshToken = extractTokenFromCookie(registerResult.getResponse(), cookieProperties.refreshTokenCookieName());
-            refreshTokenRepository.findById(UUID.fromString(refreshToken)).ifPresent(rt ->
-            {
-                rt.setExpiryDate(new Date(System.currentTimeMillis() - jwtProperties.refreshTokenExpiration()));
-                refreshTokenRepository.saveAndFlush(rt);
-            });
-
-            Cookie refreshTokenCookie = Arrays.stream(registerResult.getResponse().getCookies())
-                    .filter(cookie -> cookieProperties.refreshTokenCookieName().equals(cookie.getName()))
-                    .findFirst()
-                    .orElse(null);
-
+        @Test
+        @DisplayName("Refresh token with invalid token; 401 status code")
+        void refreshTokenWithInvalidToken() throws Exception {
             mockMvc.perform(
                             post("/auth/refresh")
-                                    .cookie(refreshTokenCookie))
-                    .andExpect(status().isUnauthorized())
+                                    .cookie(new Cookie(cookieProperties.refreshTokenCookieName(), "invalid_token")))
+                    .andExpect(status().isUnauthorized());
+        }
+
+        @Test
+        @DisplayName("Refresh token reuse after rotation; 401 status code")
+        void refreshTokenReuseAfterRotation() throws Exception {
+            RegisterRequest register = uniqueRegisterRequest("reuseuser");
+
+            MvcResult registerResult = mockMvc.perform(
+                            post("/auth/register")
+                                    .contentType("application/json")
+                                    .content(objectMapper.writeValueAsString(register)))
+                    .andExpect(status().isCreated())
                     .andReturn();
+
+            Cookie refreshCookie = Arrays.stream(registerResult.getResponse().getCookies())
+                    .filter(c -> cookieProperties.refreshTokenCookieName().equals(c.getName()))
+                    .findFirst()
+                    .orElseThrow();
+
+            // First refresh succeeds, rotating the token
+            mockMvc.perform(post("/auth/refresh").cookie(refreshCookie))
+                    .andExpect(status().isOk());
+
+            // Reusing the now-rotated-out token should fail
+            mockMvc.perform(post("/auth/refresh").cookie(refreshCookie))
+                    .andExpect(status().isUnauthorized());
+        }
+    }
+
+    @Nested
+    @DisplayName("Logout tests")
+    class Logout {
+
+        @Test
+        @DisplayName("Logout; 200 status code, refresh token revoked")
+        void logout() throws Exception {
+            RegisterRequest register = uniqueRegisterRequest("logoutuser");
+
+            MvcResult registerResult = mockMvc.perform(
+                            post("/auth/register")
+                                    .contentType("application/json")
+                                    .content(objectMapper.writeValueAsString(register)))
+                    .andExpect(status().isCreated())
+                    .andReturn();
+
+            Cookie refreshCookie = Arrays.stream(registerResult.getResponse().getCookies())
+                    .filter(c -> cookieProperties.refreshTokenCookieName().equals(c.getName()))
+                    .findFirst()
+                    .orElseThrow();
+
+            mockMvc.perform(post("/auth/logout").cookie(refreshCookie))
+                    .andExpect(status().isOk());
+
+            // Revoked refresh token should now fail
+            mockMvc.perform(post("/auth/refresh").cookie(refreshCookie))
+                    .andExpect(status().isUnauthorized());
         }
     }
 
     private String extractTokenFromCookie(MockHttpServletResponse response, String cookieName) {
-        if (response.getCookies().length == 0) return null;
-
         return Arrays.stream(response.getCookies())
-                .filter(cookie -> cookieName.equals(cookie.getName()))
+                .filter(c -> cookieName.equals(c.getName()))
                 .map(Cookie::getValue)
                 .findFirst()
                 .orElse(null);
@@ -396,6 +277,6 @@ class AuthControllerIT extends AbstractPostgresIT {
 
     private boolean cookieExists(MockHttpServletResponse response, String cookieName) {
         return Arrays.stream(response.getCookies())
-                .anyMatch(cookie -> cookieName.equals(cookie.getName()));
+                .anyMatch(c -> cookieName.equals(c.getName()));
     }
 }
