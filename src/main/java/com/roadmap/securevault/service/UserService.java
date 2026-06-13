@@ -15,7 +15,7 @@ public class UserService {
 
     private final UserRepository userRepository;
 
-    // WILL BE REWRITTEN TO LISTEN FOR KAFKA
+    // TODO: WILL BE REWRITTEN TO LISTEN FOR KAFKA
     // INSTEAD OF DB-CALL-PER-UPDATE
     @Transactional
     public User syncFromJwt(Jwt jwt) {
