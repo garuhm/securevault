@@ -50,7 +50,7 @@ public class JwtFilter extends OncePerRequestFilter {
         try {
             Jwt jwt = jwtDecoder.decode(token);
 
-            User user = userService.syncFromJwt(jwt);
+            User user = userService.getUserUsingJwt(jwt);
             Collection<GrantedAuthority> authorities = extractAuthorities(jwt);
 
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
