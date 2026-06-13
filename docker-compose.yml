@@ -49,11 +49,12 @@ services:
       - redis:/data
 
   kafka:
-    image: apache/kafka:4.3.0
+    image: confluentinc/cp-kafka:7.7.0
     container_name: securevault-kafka
     ports:
       - "9000:9092"
     environment:
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
