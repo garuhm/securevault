@@ -39,8 +39,6 @@ public class UserService {
         return new PageImpl<>(content, pageable, total);
     }
 
-    // TODO: WILL BE REWRITTEN TO LISTEN FOR KAFKA
-    // INSTEAD OF DB-CALL-PER-UPDATE
     @Transactional
     public User getUserUsingJwt(Jwt jwt) {
         UUID id = UUID.fromString(jwt.getSubject());
