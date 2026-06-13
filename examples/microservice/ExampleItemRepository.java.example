@@ -1,0 +1,8 @@
+public interface ExampleItemRepository extends JpaRepository<ExampleItem, UUID> {
+
+    @Modifying
+    @Query("UPDATE ExampleItem e " +
+           "SET e.ownerUsername = :username " +
+           "WHERE e.userId = :userId")
+    void updateOwnerUsername(@Param("userId") UUID userId, @Param("username") String username);
+}

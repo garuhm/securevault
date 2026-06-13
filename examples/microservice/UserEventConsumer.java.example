@@ -1,0 +1,36 @@
+// Kafka consumer: keeps this service's denormalized owner fields and
+// Redis cache in sync with auth-service's user-events topic.
+// Same UserEvent contract as auth-service's producer (id, username, email, type).
+//
+// Re-processing the same event is harmless (UPDATE by userId
+// is a no-op if values match; Redis SET overwrites).
+
+@Component
+@RequiredArgsConstructor
+public class UserEventConsumer {
+
+    private final ExampleItemRepository exampleItemRepository;
+    private final RedisCacheService redisCacheService;
+
+    private static final String USER_CACHE_PREFIX = "user-cache:";
+    private static final Duration CACHE_TTL = Duration.ofHours(24);
+
+    @KafkaListener(topics = "user-events", groupId = "${spring.application.name}")
+    @Transactional
+    public void onUserEvent(UserEvent event) {
+        switch (event.type()) {
+            case CREATED, UPDATED -> {
+                exampleItemRepository.updateOwnerUsername(event.id(), event.username());
+                redisCacheService.put(
+                        USER_CACHE_PREFIX + event.id(),
+                        "{\"username\":\"" + event.username() + "\",\"email\":\"" + event.email() + "\"}",
+                        CACHE_TTL
+                );
+            }
+            case DELETED -> {
+                exampleItemRepository.updateOwnerUsername(event.id(), "Deleted User");
+                redisCacheService.evict(USER_CACHE_PREFIX + event.id());
+            }
+        }
+    }
+}

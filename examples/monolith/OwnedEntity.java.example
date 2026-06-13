@@ -1,0 +1,25 @@
+// Example: an entity owned by a user, MONOLITH variant.
+// The local `User` table (see entity/User.java) is kept in sync via
+// Kafka user-events (see UserEventConsumer)
+//
+// Copy this pattern for any entity that needs a user owner.
+
+@Entity
+@Table(name = "example_items")
+public class ExampleItem {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+
+    private String name;
+
+    // Direct relationship to the local User table.
+    // Unidirectional — User has no back-reference to this entity.
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    // Repository lookups:
+    //   findByUser_Id(UUID userId)
+}

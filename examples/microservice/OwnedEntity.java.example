@@ -1,0 +1,27 @@
+// Example: an entity owned by a user, MICROSERVICE variant.
+// This service does NOT own user identity; auth-service does.
+// Domain entities reference users by raw UUID (the Keycloak `sub`),
+// no JPA relationship or FK constraint (see normalization notes below).
+
+@Entity
+@Table(name = "example_items")
+public class ExampleItem {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+
+    private String name;
+
+    @Column(name = "user_id", nullable = false)
+    private UUID userId;
+
+    // Example of a denormalized, queryable field, kept in sync by UserEventConsumer
+    // (bulk UPDATE on UserUpdated/UserDeleted). Only denormalize fields
+    // actually filtered/sorted on.
+    @Column(name = "owner_username")
+    private String ownerUsername;
+
+    // For display-only fields (email, avatar, etc.) NOT stored here.
+    // Stored in Redis cache
+}
