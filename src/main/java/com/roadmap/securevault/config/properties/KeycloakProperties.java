@@ -21,6 +21,10 @@ public record KeycloakProperties(
         return authServerUrl + "/admin/realms/" + realm + "/users";
     }
 
+    public String adminUserCountUri() {
+        return authServerUrl + "/admin/realms/" + realm + "/users/count";
+    }
+
     public String adminUserByIdUri(String userId) {
         return authServerUrl + "/admin/realms/" + realm + "/users/" + userId;
     }

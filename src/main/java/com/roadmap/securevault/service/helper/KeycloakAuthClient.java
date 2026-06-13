@@ -2,6 +2,7 @@ package com.roadmap.securevault.service.helper;
 
 import com.roadmap.securevault.config.properties.KeycloakProperties;
 import com.roadmap.securevault.dto.KeycloakTokenResponse;
+import com.roadmap.securevault.dto.KeycloakUserQuery;
 import com.roadmap.securevault.dto.KeycloakUserRepresentation;
 import com.roadmap.securevault.dto.RegisterRequest;
 import com.roadmap.securevault.entity.enums.RoleName;
@@ -18,11 +19,9 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
+import org.springframework.web.util.UriComponentsBuilder;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,12 +31,19 @@ public class KeycloakAuthClient {
     private final KeycloakProperties keycloakProperties;
     private final RestClient restClient = RestClient.create();
 
-//    TODO: CUSTOM PAGINATION AND SPECS
-    public List<KeycloakUserRepresentation> getAllUsers() {
+    public List<KeycloakUserRepresentation> getAllUsers(KeycloakUserQuery query) {
         String adminToken = getAdminAccessToken();
 
+        String uri = UriComponentsBuilder.fromUriString(keycloakProperties.adminUsersUri())
+                .queryParamIfPresent("first", Optional.ofNullable(query.first()))
+                .queryParamIfPresent("max", Optional.ofNullable(query.max()))
+                .queryParamIfPresent("username", Optional.ofNullable(query.username()))
+                .queryParamIfPresent("email", Optional.ofNullable(query.email()))
+                .queryParamIfPresent("enabled", Optional.ofNullable(query.enabled()))
+                .toUriString();
+
         List<Map<String, Object>> users = restClient.get()
-                .uri(keycloakProperties.adminUsersUri())
+                .uri(uri)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
                 .retrieve()
                 .body(List.class);
@@ -45,6 +51,24 @@ public class KeycloakAuthClient {
         return users.stream()
                 .map(this::toUserRepresentation)
                 .toList();
+    }
+
+    public long getUserCount(KeycloakUserQuery query) {
+        String adminToken = getAdminAccessToken();
+
+        String uri = UriComponentsBuilder.fromUriString(keycloakProperties.adminUserCountUri())
+                .queryParamIfPresent("username", Optional.ofNullable(query.username()))
+                .queryParamIfPresent("email", Optional.ofNullable(query.email()))
+                .queryParamIfPresent("enabled", Optional.ofNullable(query.enabled()))
+                .toUriString();
+
+        Integer count = restClient.get()
+                .uri(uri)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
+                .retrieve()
+                .body(Integer.class);
+
+        return count;
     }
 
     public KeycloakUserRepresentation getUserById(UUID userId) {
@@ -65,7 +89,7 @@ public class KeycloakAuthClient {
             throw e;
         }
     }
-    
+
     public Set<String> getUserRealmRoles(UUID userId) {
         String adminToken = getAdminAccessToken();
 
