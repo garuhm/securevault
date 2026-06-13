@@ -1,3 +1,6 @@
+server:
+  port: 8000
+
 spring:
   application:
     name: securevault
@@ -11,11 +14,18 @@ spring:
     hibernate:
       ddl-auto: update
 
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8001/realms/app-realm
+
 security:
-  jwt:
-    secret: vTpTSehgudwctoSkCRB3HCdrW8NJBRA1s02pf7TXh9E
-    access-token-expiration: 900000      # 15 minutes in ms
-    refresh-token-expiration: 604800000  # 7 days in ms
+  keycloak:
+    realm: app-realm
+    auth-server-url: http://localhost:8001
+    client-id: backend-client
+    client-secret: ${KEYCLOAK_CLIENT_SECRET}
   cookie:
     access-token-cookie-name: securevault-access-token
     refresh-token-cookie-name: securevault-refresh-token

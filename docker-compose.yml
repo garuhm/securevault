@@ -34,7 +34,7 @@ services:
       KEYCLOAK_ADMIN_PASSWORD: admin
       KC_HEALTH_ENABLED: "true"
     ports:
-      - "8080:8080"
+      - "8001:8080"
     depends_on:
       - keycloak-db
     volumes:
