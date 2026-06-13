@@ -34,3 +34,6 @@ build/
 /.jetbrains/
 /.env
 /phases/
+/jwt-to-keycloak/
+/keycloak/
+/keycloak-per-branch/
