@@ -21,8 +21,11 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
+
+@SuppressWarnings("unchecked")
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +33,11 @@ public class KeycloakAuthClient {
 
     private final KeycloakProperties keycloakProperties;
     private final RestClient restClient = RestClient.create();
+    private final RedisCacheService redisCacheService;
+
+    private static final String ADMIN_TOKEN_KEY = "keycloak:admin-token";
+    private static final String USER_ROLES_KEY_PREFIX = "keycloak:user-roles:";
+    private static final Duration ROLE_CACHE_TTL = Duration.ofMinutes(2);
 
     public List<KeycloakUserRepresentation> getAllUsers(KeycloakUserQuery query) {
         String adminToken = getAdminAccessToken();
@@ -91,24 +99,17 @@ public class KeycloakAuthClient {
     }
 
     public Set<String> getUserRealmRoles(UUID userId) {
-        String adminToken = getAdminAccessToken();
+        String key = USER_ROLES_KEY_PREFIX + userId;
 
-        try {
-            List<Map<String, Object>> roles = restClient.get()
-                    .uri(keycloakProperties.userRealmRoleMappingsUri(userId.toString()))
-                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
-                    .retrieve()
-                    .body(List.class);
-
-            return roles.stream()
-                    .map(r -> (String) r.get("name"))
-                    .collect(Collectors.toSet());
-        } catch (RestClientResponseException e) {
-            if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
-                throw new EntityNotFoundException("User not found: " + userId);
-            }
-            throw e;
-        }
+        return redisCacheService.get(key)
+                .map(cached -> cached.isEmpty()
+                        ? Set.<String>of()
+                        : Set.copyOf(Arrays.asList(cached.split(","))))
+                .orElseGet(() -> {
+                    Set<String> roles = fetchUserRealmRolesFromKeycloak(userId);
+                    redisCacheService.put(key, String.join(",", roles), ROLE_CACHE_TTL);
+                    return roles;
+                });
     }
 
     public void createUser(RegisterRequest request) {
@@ -217,21 +218,50 @@ public class KeycloakAuthClient {
         );
     }
 
-//     TODO: NEEDS TO BE CACHED
     private String getAdminAccessToken() {
+        return redisCacheService.get(ADMIN_TOKEN_KEY).orElseGet(() -> {
+            Map<String, Object> response = restClient.post()
+                    .uri(keycloakProperties.tokenUri())
+                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .body(adminTokenForm())
+                    .retrieve()
+                    .body(Map.class);
+
+            String token = (String) response.get("access_token");
+            long expiresIn = ((Number) response.get("expires_in")).longValue();
+
+            redisCacheService.put(ADMIN_TOKEN_KEY, token, Duration.ofSeconds(expiresIn - 10));
+            return token;
+        });
+    }
+
+    private Set<String> fetchUserRealmRolesFromKeycloak(UUID userId) {
+        String adminToken = getAdminAccessToken();
+
+        try {
+            List<Map<String, Object>> roles = restClient.get()
+                    .uri(keycloakProperties.userRealmRoleMappingsUri(userId.toString()))
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
+                    .retrieve()
+                    .body(List.class);
+
+            return roles.stream()
+                    .map(r -> (String) r.get("name"))
+                    .collect(Collectors.toSet());
+        } catch (RestClientResponseException e) {
+            if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
+                throw new EntityNotFoundException("User not found: " + userId);
+            }
+            throw e;
+        }
+    }
+
+    private MultiValueMap<String, String> adminTokenForm() {
         MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
         form.add("grant_type", "client_credentials");
         form.add("client_id", keycloakProperties.clientId());
         form.add("client_secret", keycloakProperties.clientSecret());
-
-        Map<String, Object> response = restClient.post()
-                .uri(keycloakProperties.tokenUri())
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .body(form)
-                .retrieve()
-                .body(Map.class);
-
-        return (String) response.get("access_token");
+        return form;
     }
 
     private KeycloakUserRepresentation toUserRepresentation(Map<String, Object> user) {
