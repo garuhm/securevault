@@ -1,4 +1,4 @@
-package com.roadmap.securevault.dto;
+package com.roadmap.securevault.kafka.events;
 
 import java.util.UUID;
 

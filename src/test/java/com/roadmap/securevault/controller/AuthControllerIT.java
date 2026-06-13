@@ -1,8 +1,8 @@
 package com.roadmap.securevault.controller;
 
 import com.roadmap.securevault.config.properties.CookieProperties;
-import com.roadmap.securevault.dto.LoginRequest;
-import com.roadmap.securevault.dto.RegisterRequest;
+import com.roadmap.securevault.dto.web.LoginRequest;
+import com.roadmap.securevault.dto.web.RegisterRequest;
 import com.roadmap.securevault.repo.UserRepository;
 import com.roadmap.securevault.test_util.testcontainers.AbstractSpringBootTest;
 import jakarta.servlet.http.Cookie;

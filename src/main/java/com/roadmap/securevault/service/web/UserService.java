@@ -1,7 +1,7 @@
-package com.roadmap.securevault.service;
+package com.roadmap.securevault.service.web;
 
-import com.roadmap.securevault.dto.KeycloakUserQuery;
-import com.roadmap.securevault.dto.KeycloakUserRepresentation;
+import com.roadmap.securevault.dto.keycloak.KeycloakUserQuery;
+import com.roadmap.securevault.dto.keycloak.KeycloakUserRepresentation;
 import com.roadmap.securevault.entity.User;
 import com.roadmap.securevault.repo.UserRepository;
 import com.roadmap.securevault.service.helper.KeycloakAuthClient;

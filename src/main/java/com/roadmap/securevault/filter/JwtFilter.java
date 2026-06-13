@@ -2,7 +2,7 @@ package com.roadmap.securevault.filter;
 
 import com.roadmap.securevault.config.properties.CookieProperties;
 import com.roadmap.securevault.entity.User;
-import com.roadmap.securevault.service.UserService;
+import com.roadmap.securevault.service.web.UserService;
 import com.roadmap.securevault.service.helper.CookieService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

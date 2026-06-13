@@ -1,11 +1,11 @@
-package com.roadmap.securevault.service;
+package com.roadmap.securevault.service.web;
 
 import com.roadmap.securevault.config.KafkaTopics;
 import com.roadmap.securevault.config.properties.CookieProperties;
-import com.roadmap.securevault.dto.KeycloakTokenResponse;
-import com.roadmap.securevault.dto.LoginRequest;
-import com.roadmap.securevault.dto.RegisterRequest;
-import com.roadmap.securevault.dto.UserEvent;
+import com.roadmap.securevault.dto.keycloak.KeycloakTokenResponse;
+import com.roadmap.securevault.dto.web.LoginRequest;
+import com.roadmap.securevault.dto.web.RegisterRequest;
+import com.roadmap.securevault.kafka.events.UserEvent;
 import com.roadmap.securevault.entity.User;
 import com.roadmap.securevault.exception.InvalidRefreshTokenException;
 import com.roadmap.securevault.service.helper.CookieService;

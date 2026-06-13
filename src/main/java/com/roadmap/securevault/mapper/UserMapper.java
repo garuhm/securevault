@@ -1,6 +1,6 @@
 package com.roadmap.securevault.mapper;
 
-import com.roadmap.securevault.dto.MeResponse;
+import com.roadmap.securevault.dto.web.MeResponse;
 import com.roadmap.securevault.entity.User;
 
 public class UserMapper {

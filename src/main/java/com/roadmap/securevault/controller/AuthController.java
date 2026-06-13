@@ -1,8 +1,8 @@
 package com.roadmap.securevault.controller;
 
-import com.roadmap.securevault.dto.LoginRequest;
-import com.roadmap.securevault.dto.RegisterRequest;
-import com.roadmap.securevault.service.AuthService;
+import com.roadmap.securevault.dto.web.LoginRequest;
+import com.roadmap.securevault.dto.web.RegisterRequest;
+import com.roadmap.securevault.service.web.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;

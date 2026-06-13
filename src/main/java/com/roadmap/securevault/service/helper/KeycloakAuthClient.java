@@ -1,10 +1,10 @@
 package com.roadmap.securevault.service.helper;
 
 import com.roadmap.securevault.config.properties.KeycloakProperties;
-import com.roadmap.securevault.dto.KeycloakTokenResponse;
-import com.roadmap.securevault.dto.KeycloakUserQuery;
-import com.roadmap.securevault.dto.KeycloakUserRepresentation;
-import com.roadmap.securevault.dto.RegisterRequest;
+import com.roadmap.securevault.dto.keycloak.KeycloakTokenResponse;
+import com.roadmap.securevault.dto.keycloak.KeycloakUserQuery;
+import com.roadmap.securevault.dto.keycloak.KeycloakUserRepresentation;
+import com.roadmap.securevault.dto.web.RegisterRequest;
 import com.roadmap.securevault.entity.enums.RoleName;
 import com.roadmap.securevault.exception.CredentialsTakenException;
 import com.roadmap.securevault.exception.InvalidRefreshTokenException;

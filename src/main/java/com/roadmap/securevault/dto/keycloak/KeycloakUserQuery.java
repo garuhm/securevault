@@ -1,4 +1,4 @@
-package com.roadmap.securevault.dto;
+package com.roadmap.securevault.dto.keycloak;
 
 public record KeycloakUserQuery(
         Integer first,

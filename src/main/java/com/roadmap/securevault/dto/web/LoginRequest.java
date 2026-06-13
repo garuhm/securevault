@@ -1,4 +1,4 @@
-package com.roadmap.securevault.dto;
+package com.roadmap.securevault.dto.web;
 
 import jakarta.validation.constraints.NotBlank;
 

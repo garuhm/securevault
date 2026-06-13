@@ -1,7 +1,7 @@
 package com.roadmap.securevault.controller;
 
-import com.roadmap.securevault.controller.annotation.ApiVersion;
-import com.roadmap.securevault.dto.MeResponse;
+import com.roadmap.securevault.annotation.ApiVersion;
+import com.roadmap.securevault.dto.web.MeResponse;
 import com.roadmap.securevault.entity.User;
 import com.roadmap.securevault.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;

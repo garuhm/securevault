@@ -1,7 +1,7 @@
-package com.roadmap.securevault.service;
+package com.roadmap.securevault.kafka;
 
 import com.roadmap.securevault.config.KafkaTopics;
-import com.roadmap.securevault.dto.UserEvent;
+import com.roadmap.securevault.kafka.events.UserEvent;
 import com.roadmap.securevault.entity.User;
 import com.roadmap.securevault.repo.UserRepository;
 import lombok.RequiredArgsConstructor;

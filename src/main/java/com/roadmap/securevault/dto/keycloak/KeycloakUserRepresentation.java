@@ -1,4 +1,4 @@
-package com.roadmap.securevault.dto;
+package com.roadmap.securevault.dto.keycloak;
 
 import java.util.UUID;
 

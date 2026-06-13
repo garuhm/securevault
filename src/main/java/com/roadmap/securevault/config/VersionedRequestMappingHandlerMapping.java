@@ -1,7 +1,7 @@
-package com.roadmap.securevault.controller.helper;
+package com.roadmap.securevault.config;
 
-import com.roadmap.securevault.controller.annotation.ApiVersion;
-import com.roadmap.securevault.controller.annotation.NoApiVersion;
+import com.roadmap.securevault.annotation.ApiVersion;
+import com.roadmap.securevault.annotation.NoApiVersion;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;

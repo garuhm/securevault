@@ -2,7 +2,7 @@ package com.roadmap.securevault.config;
 
 import com.roadmap.securevault.config.properties.CookieProperties;
 import com.roadmap.securevault.filter.JwtFilter;
-import com.roadmap.securevault.service.UserService;
+import com.roadmap.securevault.service.web.UserService;
 import com.roadmap.securevault.service.helper.CookieService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
