@@ -10,6 +10,11 @@ spring:
     username: securevault
     password: securevault
 
+  data:
+    redis:
+      host: localhost
+      port: 6000
+
   jpa:
     hibernate:
       ddl-auto: update

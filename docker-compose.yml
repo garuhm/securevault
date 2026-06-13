@@ -40,6 +40,15 @@ services:
     volumes:
       - ./keycloak/import:/opt/keycloak/data/import
 
+  redis:
+    image: redis:7
+    container_name: securevault-redis
+    ports:
+      - "6000:6379"
+    volumes:
+      - redis:/data
+
 volumes:
   db:
   keycloak-db:
+  redis:
