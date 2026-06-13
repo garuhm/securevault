@@ -1,9 +1,11 @@
 package com.roadmap.securevault.service;
 
+import com.roadmap.securevault.config.KafkaTopics;
 import com.roadmap.securevault.config.properties.CookieProperties;
 import com.roadmap.securevault.dto.KeycloakTokenResponse;
 import com.roadmap.securevault.dto.LoginRequest;
 import com.roadmap.securevault.dto.RegisterRequest;
+import com.roadmap.securevault.dto.UserEvent;
 import com.roadmap.securevault.entity.User;
 import com.roadmap.securevault.exception.InvalidRefreshTokenException;
 import com.roadmap.securevault.service.helper.CookieService;
@@ -11,21 +13,38 @@ import com.roadmap.securevault.service.helper.KeycloakAuthClient;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.stereotype.Service;
+
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class AuthService {
     private final KeycloakAuthClient keycloakAuthClient;
+    private final JwtDecoder jwtDecoder;
     private final CookieService cookieService;
     private final CookieProperties cookieProperties;
+    private final KafkaTemplate<String, UserEvent> kafkaTemplate;
 
     public void register(RegisterRequest credentials, HttpServletResponse response) {
         keycloakAuthClient.createUser(credentials);
 
         KeycloakTokenResponse tokens = keycloakAuthClient.passwordGrantLogin(
                 credentials.username(), credentials.password());
+
+        Jwt jwt = jwtDecoder.decode(tokens.accessToken());
+
+        UserEvent event = new UserEvent(
+                UUID.fromString(jwt.getSubject()),
+                credentials.username(),
+                credentials.email(),
+                UserEvent.UserEventType.CREATED
+        );
+        kafkaTemplate.send(KafkaTopics.USER_EVENTS, event.id().toString(), event);
 
         cookieService.addTokenCookies(response,
                 tokens.accessToken(),
