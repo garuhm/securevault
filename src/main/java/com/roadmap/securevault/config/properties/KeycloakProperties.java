@@ -28,4 +28,8 @@ public record KeycloakProperties(
     public String adminUserSessionsUri(String userId) {
         return authServerUrl + "/admin/realms/" + realm + "/users/" + userId + "/logout";
     }
+
+    public String userRealmRoleMappingsUri(String userId) {
+        return authServerUrl + "/admin/realms/" + realm + "/users/" + userId + "/role-mappings/realm";
+    }
 }

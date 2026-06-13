@@ -21,7 +21,9 @@ import org.springframework.web.client.RestClientResponseException;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -56,6 +58,27 @@ public class KeycloakAuthClient {
                     .body(Map.class);
 
             return toUserRepresentation(user);
+        } catch (RestClientResponseException e) {
+            if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
+                throw new EntityNotFoundException("User not found: " + userId);
+            }
+            throw e;
+        }
+    }
+    
+    public Set<String> getUserRealmRoles(UUID userId) {
+        String adminToken = getAdminAccessToken();
+
+        try {
+            List<Map<String, Object>> roles = restClient.get()
+                    .uri(keycloakProperties.userRealmRoleMappingsUri(userId.toString()))
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
+                    .retrieve()
+                    .body(List.class);
+
+            return roles.stream()
+                    .map(r -> (String) r.get("name"))
+                    .collect(Collectors.toSet());
         } catch (RestClientResponseException e) {
             if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
                 throw new EntityNotFoundException("User not found: " + userId);
