@@ -52,8 +52,11 @@ public abstract class AbstractTestContainersUtilizingTest {
         registry.add("spring.security.oauth2.resourceserver.jwt.issuer-uri", () -> issuerUri);
         registry.add("security.keycloak.realm", () -> "app-realm");
         registry.add("security.keycloak.auth-server-url", KEYCLOAK::getAuthServerUrl);
-        registry.add("security.keycloak.client-id", () -> "backend-client");
-        registry.add("security.keycloak.client-secret", () -> fetchClientSecret());
+        registry.add("security.keycloak.service-client-id", () -> "backend-client");
+        registry.add("security.keycloak.service-client-secret", () -> fetchClientSecret("backend-client"));
+
+        registry.add("test.keycloak.client-id", () -> "test-client");
+        registry.add("test.keycloak.client-secret", () -> fetchClientSecret("test-client"));
 
         registry.add("spring.kafka.bootstrap-servers", KAFKA::getBootstrapServers);
 
@@ -61,7 +64,7 @@ public abstract class AbstractTestContainersUtilizingTest {
         registry.add("spring.data.redis.port", () -> REDIS.getMappedPort(6379));
     }
 
-    private static String fetchClientSecret() {
+    private static String fetchClientSecret(String clientId) {
         String adminToken = RestClient.create().post()
                 .uri(KEYCLOAK.getAuthServerUrl() + "/realms/master/protocol/openid-connect/token")
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
@@ -73,7 +76,7 @@ public abstract class AbstractTestContainersUtilizingTest {
                 .toString();
 
         List<Map<String, Object>> clients = RestClient.create().get()
-                .uri(KEYCLOAK.getAuthServerUrl() + "/admin/realms/app-realm/clients?clientId=backend-client")
+                .uri(KEYCLOAK.getAuthServerUrl() + "/admin/realms/app-realm/clients?clientId=" + clientId)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
                 .retrieve()
                 .body(List.class);

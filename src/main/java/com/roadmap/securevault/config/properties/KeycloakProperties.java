@@ -6,16 +6,13 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public record KeycloakProperties(
         String realm,
         String authServerUrl,
-        String clientId,
-        String clientSecret
+        String serviceClientId,
+        String serviceClientSecret
 ) {
     public String tokenUri() {
         return authServerUrl + "/realms/" + realm + "/protocol/openid-connect/token";
     }
 
-    public String logoutUri() {
-        return authServerUrl + "/realms/" + realm + "/protocol/openid-connect/logout";
-    }
 
     public String adminUsersUri() {
         return authServerUrl + "/admin/realms/" + realm + "/users";

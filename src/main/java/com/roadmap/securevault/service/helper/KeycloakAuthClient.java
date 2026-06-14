@@ -1,19 +1,17 @@
 package com.roadmap.securevault.service.helper;
 
 import com.roadmap.securevault.config.properties.KeycloakProperties;
-import com.roadmap.securevault.dto.keycloak.KeycloakTokenResponse;
 import com.roadmap.securevault.dto.keycloak.KeycloakUserQuery;
 import com.roadmap.securevault.dto.keycloak.KeycloakUserRepresentation;
 import com.roadmap.securevault.dto.web.RegisterRequest;
 import com.roadmap.securevault.entity.enums.RoleName;
 import com.roadmap.securevault.exception.CredentialsTakenException;
-import com.roadmap.securevault.exception.InvalidRefreshTokenException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -21,12 +19,12 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
 import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("unchecked")
-
 @Service
 @RequiredArgsConstructor
 public class KeycloakAuthClient {
@@ -112,7 +110,7 @@ public class KeycloakAuthClient {
                 });
     }
 
-    public void createUser(RegisterRequest request) {
+    public UUID createUser(RegisterRequest request) {
         String adminToken = getAdminAccessToken();
 
         Map<String, Object> body = Map.of(
@@ -130,65 +128,21 @@ public class KeycloakAuthClient {
         );
 
         try {
-            restClient.post()
+            ResponseEntity<Void> response = restClient.post()
                     .uri(keycloakProperties.adminUsersUri())
                     .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(body)
                     .retrieve()
                     .toBodilessEntity();
+
+            return extractIdFromLocation(response.getHeaders().getLocation());
         } catch (RestClientResponseException e) {
             if (e.getStatusCode() == HttpStatus.CONFLICT) {
                 throw new CredentialsTakenException("Username or email already exists");
             }
             throw e;
         }
-    }
-
-    public KeycloakTokenResponse passwordGrantLogin(String username, String password) {
-        MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
-        form.add("grant_type", "password");
-        form.add("client_id", keycloakProperties.clientId());
-        form.add("client_secret", keycloakProperties.clientSecret());
-        form.add("username", username);
-        form.add("password", password);
-
-        try {
-            return requestTokens(form);
-        } catch (RestClientResponseException e) {
-            if (e.getStatusCode() == HttpStatus.UNAUTHORIZED || e.getStatusCode() == HttpStatus.BAD_REQUEST) {
-                throw new BadCredentialsException("Username or password is incorrect.");
-            }
-            throw e;
-        }
-    }
-
-    public KeycloakTokenResponse refreshGrant(String refreshToken) {
-        MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
-        form.add("grant_type", "refresh_token");
-        form.add("client_id", keycloakProperties.clientId());
-        form.add("client_secret", keycloakProperties.clientSecret());
-        form.add("refresh_token", refreshToken);
-
-        try {
-            return requestTokens(form);
-        } catch (RestClientResponseException e) {
-            throw new InvalidRefreshTokenException("Refresh token is invalid, expired, or revoked.");
-        }
-    }
-
-    public void logout(String refreshToken) {
-        MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
-        form.add("client_id", keycloakProperties.clientId());
-        form.add("client_secret", keycloakProperties.clientSecret());
-        form.add("refresh_token", refreshToken);
-
-        restClient.post()
-                .uri(keycloakProperties.logoutUri())
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .body(form)
-                .retrieve()
-                .toBodilessEntity();
     }
 
     public void logoutAllSessions(UUID userId) {
@@ -203,20 +157,12 @@ public class KeycloakAuthClient {
 
     // ---- internal helpers ----
 
-    private KeycloakTokenResponse requestTokens(MultiValueMap<String, String> form) {
-        Map<String, Object> response = restClient.post()
-                .uri(keycloakProperties.tokenUri())
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .body(form)
-                .retrieve()
-                .body(Map.class);
-
-        return new KeycloakTokenResponse(
-                (String) response.get("access_token"),
-                (String) response.get("refresh_token"),
-                ((Number) response.get("expires_in")).longValue(),
-                ((Number) response.get("refresh_expires_in")).longValue()
-        );
+    private UUID extractIdFromLocation(URI location) {
+        if (location == null) {
+            throw new IllegalStateException("Keycloak did not return a Location header for the created user");
+        }
+        String path = location.getPath();
+        return UUID.fromString(path.substring(path.lastIndexOf('/') + 1));
     }
 
     private String getAdminAccessToken() {
@@ -260,8 +206,8 @@ public class KeycloakAuthClient {
     private MultiValueMap<String, String> adminTokenForm() {
         MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
         form.add("grant_type", "client_credentials");
-        form.add("client_id", keycloakProperties.clientId());
-        form.add("client_secret", keycloakProperties.clientSecret());
+        form.add("client_id", keycloakProperties.serviceClientId());
+        form.add("client_secret", keycloakProperties.serviceClientSecret());
         return form;
     }
 

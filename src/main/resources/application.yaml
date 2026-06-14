@@ -23,7 +23,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8001/realms/app-realm
+          issuer-uri: ${security.keycloak.auth-server-url}/realms/${security.keycloak.realm}
 
   kafka:
     bootstrap-servers: localhost:9000
@@ -43,9 +43,5 @@ security:
   keycloak:
     realm: app-realm
     auth-server-url: http://localhost:8001
-    client-id: backend-client
-    client-secret: ${KEYCLOAK_CLIENT_SECRET}
-  cookie:
-    access-token-cookie-name: securevault-access-token
-    refresh-token-cookie-name: securevault-refresh-token
-    refresh-token-cookie-path: /auth/refresh
+    service-client-id: backend-client
+    service-client-secret: ${KEYCLOAK_CLIENT_SECRET}

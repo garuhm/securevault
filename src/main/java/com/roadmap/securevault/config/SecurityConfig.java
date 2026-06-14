@@ -1,9 +1,6 @@
 package com.roadmap.securevault.config;
 
-import com.roadmap.securevault.config.properties.CookieProperties;
-import com.roadmap.securevault.filter.JwtFilter;
-import com.roadmap.securevault.service.web.UserService;
-import com.roadmap.securevault.service.helper.CookieService;
+import com.roadmap.securevault.security.UserPrincipalJwtAuthenticationConverter;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -11,30 +8,27 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 
 @RequiredArgsConstructor
 public class SecurityConfig {
-    private final JwtDecoder jwtDecoder;
-    private final UserService userService;
-    private final CookieService cookieService;
-    private final CookieProperties cookieProperties;
+    private final UserPrincipalJwtAuthenticationConverter userPrincipalConverter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .addFilterBefore(jwtAuthFilter(), UsernamePasswordAuthenticationFilter.class)
                 .csrf(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
+                .anonymous(AbstractHttpConfigurer::disable)
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(
                         auth -> auth
-                                .requestMatchers("/auth/**").permitAll()
+                                .requestMatchers("/auth/register").permitAll()
                                 .anyRequest().authenticated())
+                .oauth2ResourceServer(oauth2 -> oauth2
+                        .jwt(jwt -> jwt.jwtAuthenticationConverter(userPrincipalConverter)))
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((request, response, authException) -> {
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -48,11 +42,6 @@ public class SecurityConfig {
                         })
                 );
         return http.build();
-    }
-
-    @Bean
-    public JwtFilter jwtAuthFilter() {
-        return new JwtFilter(jwtDecoder, userService, cookieService, cookieProperties);
     }
 }
 
