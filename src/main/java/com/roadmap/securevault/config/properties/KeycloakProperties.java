@@ -13,6 +13,9 @@ public record KeycloakProperties(
         return authServerUrl + "/realms/" + realm + "/protocol/openid-connect/token";
     }
 
+    public String introspectionUri() {
+        return authServerUrl + "/realms/" + realm + "/protocol/openid-connect/token/introspect";
+    }
 
     public String adminUsersUri() {
         return authServerUrl + "/admin/realms/" + realm + "/users";

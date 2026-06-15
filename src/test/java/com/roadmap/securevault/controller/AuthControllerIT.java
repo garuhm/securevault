@@ -128,6 +128,11 @@ class AuthControllerIT extends AbstractSpringBootTest {
                             post("/auth/logout")
                                     .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
                     .andExpect(status().isOk());
+
+            mockMvc.perform(
+                            post("/auth/logout")
+                                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
+                    .andExpect(status().isUnauthorized());
         }
     }
 }

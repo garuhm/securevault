@@ -1,6 +1,7 @@
 package com.roadmap.securevault.config;
 
-import com.roadmap.securevault.security.UserPrincipalJwtAuthenticationConverter;
+import com.roadmap.securevault.config.properties.KeycloakProperties;
+import com.roadmap.securevault.security.UserPrincipalOpaqueTokenAuthenticationConverter;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -14,7 +15,8 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @RequiredArgsConstructor
 public class SecurityConfig {
-    private final UserPrincipalJwtAuthenticationConverter userPrincipalConverter;
+    private final KeycloakProperties keycloakProperties;
+    private final UserPrincipalOpaqueTokenAuthenticationConverter userPrincipalOpaqueTokenConverter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -28,7 +30,13 @@ public class SecurityConfig {
                                 .requestMatchers("/auth/register").permitAll()
                                 .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2
-                        .jwt(jwt -> jwt.jwtAuthenticationConverter(userPrincipalConverter)))
+                        .opaqueToken(
+                                opaque -> opaque
+                                        .introspectionUri(keycloakProperties.introspectionUri())
+                                        .introspectionClientCredentials(
+                                                keycloakProperties.serviceClientId(),
+                                                keycloakProperties.serviceClientSecret())
+                                        .authenticationConverter(userPrincipalOpaqueTokenConverter)))
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((request, response, authException) -> {
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

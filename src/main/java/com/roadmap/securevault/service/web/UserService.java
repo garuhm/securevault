@@ -9,11 +9,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -40,15 +40,15 @@ public class UserService {
     }
 
     @Transactional
-    public User getUserUsingJwt(Jwt jwt) {
-        UUID id = UUID.fromString(jwt.getSubject());
+    public User getUserUsingClaims(Map<String, Object> claims) {
+        UUID id = UUID.fromString((String) claims.get("sub"));
 
         return userRepository.findById(id)
                 .orElseGet(() -> userRepository.save(
                         User.builder()
                                 .id(id)
-                                .username(jwt.getClaimAsString("preferred_username"))
-                                .email(jwt.getClaimAsString("email"))
+                                .username((String) claims.get("preferred_username"))
+                                .email((String) claims.get("email"))
                                 .build()
                 ));
     }
