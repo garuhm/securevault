@@ -4,8 +4,10 @@ import com.roadmap.securevault.config.properties.KeycloakProperties;
 import com.roadmap.securevault.dto.keycloak.KeycloakUserQuery;
 import com.roadmap.securevault.dto.keycloak.KeycloakUserRepresentation;
 import com.roadmap.securevault.dto.web.RegisterRequest;
+import com.roadmap.securevault.dto.web.UserUpdateRequest;
 import com.roadmap.securevault.entity.enums.RoleName;
 import com.roadmap.securevault.exception.CredentialsTakenException;
+import com.roadmap.securevault.exception.InvalidStateException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -145,6 +147,50 @@ public class KeycloakAuthClient {
         }
     }
 
+    public KeycloakUserRepresentation updateUser(UUID userId, UserUpdateRequest request) {
+        String adminToken = getAdminAccessToken();
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("username", request.username());
+        body.put("email", request.email());
+        body.put("enabled", request.enabled() != null ? request.enabled() : true);
+        body.put("emailVerified", request.emailVerified() != null ? request.emailVerified() : false);
+
+        putUserInternal(adminToken, userId, body);
+        return toUserRepresentation(body);
+    }
+
+    public KeycloakUserRepresentation patchUser(UUID userId, UserUpdateRequest request) {
+        String adminToken = getAdminAccessToken();
+
+        Map<String, Object> existing = fetchRawUserById(adminToken, userId);
+
+        if (request.username() != null) existing.put("username", request.username());
+        if (request.email() != null) existing.put("email", request.email());
+        if (request.enabled() != null) existing.put("enabled", request.enabled());
+        if (request.emailVerified() != null) existing.put("emailVerified", request.emailVerified());
+
+        putUserInternal(adminToken, userId, existing);
+        return toUserRepresentation(existing);
+    }
+
+    public void deleteUser(UUID userId) {
+        String adminToken = getAdminAccessToken();
+
+        try {
+            restClient.delete()
+                    .uri(keycloakProperties.adminUserByIdUri(userId.toString()))
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
+                    .retrieve()
+                    .toBodilessEntity();
+        } catch (RestClientResponseException e) {
+            if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
+                throw new EntityNotFoundException("User not found: " + userId);
+            }
+            throw e;
+        }
+    }
+
     public void logoutAllSessions(UUID userId) {
         String adminToken = getAdminAccessToken();
 
@@ -157,9 +203,44 @@ public class KeycloakAuthClient {
 
     // ---- internal helpers ----
 
+    private void putUserInternal(String adminToken, UUID userId, Map<String, Object> body) {
+        try {
+            restClient.put()
+                    .uri(keycloakProperties.adminUserByIdUri(userId.toString()))
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(body)
+                    .retrieve()
+                    .toBodilessEntity();
+        } catch (RestClientResponseException e) {
+            if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
+                throw new EntityNotFoundException("User not found: " + userId);
+            }
+            if (e.getStatusCode() == HttpStatus.CONFLICT) {
+                throw new CredentialsTakenException("Username or email already exists");
+            }
+            throw e;
+        }
+    }
+
+    private Map<String, Object> fetchRawUserById(String adminToken, UUID userId) {
+        try {
+            return restClient.get()
+                    .uri(keycloakProperties.adminUserByIdUri(userId.toString()))
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
+                    .retrieve()
+                    .body(Map.class);
+        } catch (RestClientResponseException e) {
+            if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
+                throw new EntityNotFoundException("User not found: " + userId);
+            }
+            throw e;
+        }
+    }
+
     private UUID extractIdFromLocation(URI location) {
         if (location == null) {
-            throw new IllegalStateException("Keycloak did not return a Location header for the created user");
+            throw new InvalidStateException("Keycloak did not return a Location header for the created user");
         }
         String path = location.getPath();
         return UUID.fromString(path.substring(path.lastIndexOf('/') + 1));
