@@ -378,10 +378,18 @@ public class KeycloakAuthClient {
     }
 
     private KeycloakUserRepresentation toUserRepresentation(Map<String, Object> user) {
+        UUID id = UUID.fromString((String) user.get("id"));
+
+        Set<RoleName> roles = fetchUserRealmRolesFromKeycloak(id).stream()
+                .map(this::tryParseRole)
+                .filter(java.util.Objects::nonNull)
+                .collect(Collectors.toSet());
+
         return new KeycloakUserRepresentation(
                 UUID.fromString((String) user.get("id")),
                 (String) user.get("username"),
-                (String) user.get("email")
+                (String) user.get("email"),
+                roles
         );
     }
 

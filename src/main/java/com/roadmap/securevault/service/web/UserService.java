@@ -3,6 +3,7 @@ package com.roadmap.securevault.service.web;
 import com.roadmap.securevault.config.KafkaTopics;
 import com.roadmap.securevault.dto.keycloak.KeycloakUserQuery;
 import com.roadmap.securevault.dto.keycloak.KeycloakUserRepresentation;
+import com.roadmap.securevault.dto.web.UserFilter;
 import com.roadmap.securevault.dto.web.UserUpdateRequest;
 import com.roadmap.securevault.entity.User;
 import com.roadmap.securevault.entity.enums.RoleName;
@@ -34,13 +35,13 @@ public class UserService {
     private final KafkaTemplate<String, UserEvent> kafkaTemplate;
 
     // if an app needs it
-    public Page<KeycloakUserRepresentation> getUsers(Pageable pageable, String username, String email, Boolean enabled) {
+    public Page<KeycloakUserRepresentation> getUsers(Pageable pageable, UserFilter filter) {
         KeycloakUserQuery query = new KeycloakUserQuery(
                 (int) pageable.getOffset(),
                 pageable.getPageSize(),
-                username,
-                email,
-                enabled
+                filter.username(),
+                filter.email(),
+                filter.enabled()
         );
 
         List<KeycloakUserRepresentation> content = keycloakAuthClient.getAllUsers(query);

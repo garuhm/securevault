@@ -2,9 +2,15 @@ package com.roadmap.securevault.controller;
 
 import com.roadmap.securevault.annotation.ApiVersion;
 import com.roadmap.securevault.dto.keycloak.KeycloakUserRepresentation;
+import com.roadmap.securevault.dto.web.UserFilter;
+import com.roadmap.securevault.dto.web.RoleUpdateRequest;
 import com.roadmap.securevault.dto.web.UserUpdateRequest;
 import com.roadmap.securevault.service.web.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -19,6 +25,18 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
+
+    @GetMapping
+    public ResponseEntity<Page<KeycloakUserRepresentation>> getUsers(
+            @ParameterObject UserFilter filter,
+            @ParameterObject Pageable pageable) {
+        return ResponseEntity.ok(userService.getUsers(pageable, filter));
+    }
+
+    @GetMapping("/{userId}")
+    public ResponseEntity<KeycloakUserRepresentation> getUserById(@PathVariable UUID userId) {
+        return ResponseEntity.ok(userService.getUserById(userId));
+    }
 
     @PutMapping("/{userId}")
     @PreAuthorize("@securityEvaluator.isSelf(authentication, #id) " +
