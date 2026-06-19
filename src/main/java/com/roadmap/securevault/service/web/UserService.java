@@ -5,6 +5,9 @@ import com.roadmap.securevault.dto.keycloak.KeycloakUserQuery;
 import com.roadmap.securevault.dto.keycloak.KeycloakUserRepresentation;
 import com.roadmap.securevault.dto.web.UserUpdateRequest;
 import com.roadmap.securevault.entity.User;
+import com.roadmap.securevault.entity.enums.RoleName;
+import com.roadmap.securevault.exception.InvalidRoleOperationException;
+import com.roadmap.securevault.exception.InvalidStateException;
 import com.roadmap.securevault.exception.OwnerDeletionException;
 import com.roadmap.securevault.kafka.events.UserEvent;
 import com.roadmap.securevault.repo.UserRepository;
@@ -19,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -89,6 +93,36 @@ public class UserService {
         );
         kafkaTemplate.send(KafkaTopics.USER_EVENTS, event.id().toString(), event);
         return keycloakUser;
+    }
+
+    public void addRole(UUID userId, RoleName role) {
+        Set<String> currentRoles = keycloakAuthClient.getUserRealmRoles(userId);
+        if (currentRoles.contains(role.name())) {
+            throw new InvalidStateException("User already has role: " + role.name());
+        }
+
+        if (role == RoleName.ROLE_OWNER) {
+            throw new InvalidRoleOperationException("Owner role cannot be assigned");
+        }
+        keycloakAuthClient.addRealmRole(userId, role);
+    }
+
+    public void removeRole(UUID userId, RoleName role) {
+        Set<String> currentRoles = keycloakAuthClient.getUserRealmRoles(userId);
+        if (!currentRoles.contains(role.name())) {
+            throw new InvalidStateException("User does not have role: " + role.name());
+        }
+
+        if(role == RoleName.ROLE_OWNER && currentRoles
+                .stream()
+                .anyMatch(r -> r.equals(RoleName.ROLE_OWNER.name()))) {
+            throw new InvalidRoleOperationException("Owner cannot be demoted");
+        }
+
+        if(currentRoles.size() == 1) {
+            throw new InvalidRoleOperationException("Cannot remove last role from user");
+        }
+        keycloakAuthClient.removeRealmRole(userId, role);
     }
 
     @Transactional

@@ -38,6 +38,24 @@ public class UserController {
         return ResponseEntity.ok(userService.partiallyUpdateUser(userId, request));
     }
 
+    @PatchMapping("/{userId}/roles")
+    @PreAuthorize("hasAuthority('ROLE_OWNER')")
+    public ResponseEntity<Void> patchUserRole(
+            @PathVariable UUID userId,
+            @RequestBody @Valid RoleUpdateRequest request) {
+        userService.addRole(userId, request.role());
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{userId}/roles")
+    @PreAuthorize("hasAuthority('ROLE_OWNER')")
+    public ResponseEntity<Void> deleteUserRole(
+            @PathVariable UUID userId,
+            @RequestBody @Valid RoleUpdateRequest request) {
+        userService.removeRole(userId, request.role());
+        return ResponseEntity.noContent().build();
+    }
+
     @DeleteMapping("/{userId}")
     @PreAuthorize("@securityEvaluator.isSelf(authentication, #id) " +
                    "or @securityEvaluator.isAbove(authentication, #id) ")

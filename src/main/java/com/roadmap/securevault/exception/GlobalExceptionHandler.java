@@ -18,7 +18,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = {
             CredentialsTakenException.class,
             InvalidStateException.class,
-            OwnerDeletionException.class})
+            OwnerDeletionException.class,
+            InvalidRoleOperationException.class})
     public ResponseEntity<String> handleConflictException(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
     }

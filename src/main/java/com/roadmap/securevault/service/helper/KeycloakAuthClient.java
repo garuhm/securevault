@@ -10,10 +10,7 @@ import com.roadmap.securevault.exception.CredentialsTakenException;
 import com.roadmap.securevault.exception.InvalidStateException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -110,6 +107,52 @@ public class KeycloakAuthClient {
                     redisCacheService.put(key, String.join(",", roles), ROLE_CACHE_TTL);
                     return roles;
                 });
+    }
+
+    public void addRealmRole(UUID userId, RoleName role) {
+        String adminToken = getAdminAccessToken();
+
+        RoleRepresentationDto roleRep = fetchRealmRole(adminToken, role);
+
+        try {
+            restClient.post()
+                    .uri(keycloakProperties.userRealmRoleMappingsUri(userId.toString()))
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(List.of(roleRep))
+                    .retrieve()
+                    .toBodilessEntity();
+        } catch (RestClientResponseException e) {
+            if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
+                throw new EntityNotFoundException("User not found: " + userId);
+            }
+            throw e;
+        }
+
+        invalidateUserRolesCache(userId);
+    }
+
+    public void removeRealmRole(UUID userId, RoleName role) {
+        String adminToken = getAdminAccessToken();
+
+        RoleRepresentationDto roleRep = fetchRealmRole(adminToken, role);
+
+        try {
+            restClient.method(HttpMethod.DELETE)
+                    .uri(keycloakProperties.userRealmRoleMappingsUri(userId.toString()))
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(List.of(roleRep))
+                    .retrieve()
+                    .toBodilessEntity();
+        } catch (RestClientResponseException e) {
+            if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
+                throw new EntityNotFoundException("User not found: " + userId);
+            }
+            throw e;
+        }
+
+        invalidateUserRolesCache(userId);
     }
 
     public boolean isOwner(UUID userId) {
@@ -301,6 +344,31 @@ public class KeycloakAuthClient {
         }
     }
 
+    private RoleRepresentationDto fetchRealmRole(String adminToken, RoleName role) {
+        try {
+            Map<String, Object> roleMap = restClient.get()
+                    .uri(keycloakProperties.realmRoleByNameUri(role.name()))
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
+                    .retrieve()
+                    .body(Map.class);
+
+            return new RoleRepresentationDto(
+                    (String) roleMap.get("id"),
+                    (String) roleMap.get("name")
+            );
+        } catch (RestClientResponseException e) {
+            if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
+                throw new EntityNotFoundException("Realm role not found: " + role.name());
+            }
+            throw e;
+        }
+    }
+
+    private void invalidateUserRolesCache( UUID userId) {
+        String key = USER_ROLES_KEY_PREFIX + userId;
+        redisCacheService.evict(key);
+    }
+
     private MultiValueMap<String, String> adminTokenForm() {
         MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
         form.add("grant_type", "client_credentials");
@@ -316,4 +384,6 @@ public class KeycloakAuthClient {
                 (String) user.get("email")
         );
     }
+
+    private record RoleRepresentationDto(String id, String name) {}
 }
