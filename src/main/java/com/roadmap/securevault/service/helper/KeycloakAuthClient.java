@@ -112,6 +112,15 @@ public class KeycloakAuthClient {
                 });
     }
 
+    public boolean isOwner(UUID userId) {
+        Set<String> roles = getUserRealmRoles(userId);
+        return roles
+                .stream()
+                .map(this::tryParseRole)
+                .filter(Objects::nonNull)
+                .anyMatch(role -> role == RoleName.ROLE_OWNER);
+    }
+
     public UUID createUser(RegisterRequest request) {
         String adminToken = getAdminAccessToken();
 
@@ -202,6 +211,14 @@ public class KeycloakAuthClient {
     }
 
     // ---- internal helpers ----
+
+    private RoleName tryParseRole(String authority) {
+        try {
+            return RoleName.valueOf(authority);
+        } catch (IllegalArgumentException e) {
+            return null; // not one of our roles (e.g. offline_access, uma_authorization)
+        }
+    }
 
     private void putUserInternal(String adminToken, UUID userId, Map<String, Object> body) {
         try {

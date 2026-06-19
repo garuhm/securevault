@@ -5,6 +5,7 @@ import com.roadmap.securevault.dto.keycloak.KeycloakUserQuery;
 import com.roadmap.securevault.dto.keycloak.KeycloakUserRepresentation;
 import com.roadmap.securevault.dto.web.UserUpdateRequest;
 import com.roadmap.securevault.entity.User;
+import com.roadmap.securevault.exception.OwnerDeletionException;
 import com.roadmap.securevault.kafka.events.UserEvent;
 import com.roadmap.securevault.repo.UserRepository;
 import com.roadmap.securevault.service.helper.KeycloakAuthClient;
@@ -92,6 +93,9 @@ public class UserService {
 
     @Transactional
     public void deleteUser(UUID userId) {
+        if(keycloakAuthClient.isOwner(userId))  // for isSelf
+            throw new OwnerDeletionException("Owner cannot self-delete their account.");
+
         keycloakAuthClient.deleteUser(userId);
 
         if(userRepository.existsById(userId)) {
