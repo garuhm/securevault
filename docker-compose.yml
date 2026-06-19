@@ -39,6 +39,7 @@ services:
       - keycloak-db
     volumes:
       - ./keycloak/import:/opt/keycloak/data/import
+      - ./keycloak/themes:/opt/keycloak/themes
 
   redis:
     image: redis:7
