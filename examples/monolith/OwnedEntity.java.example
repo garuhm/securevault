@@ -19,7 +19,4 @@ public class ExampleItem {
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
-
-    // Repository lookups:
-    //   findByUser_Id(UUID userId)
 }
