@@ -97,7 +97,7 @@ public class UserService {
     }
 
     public void addRole(UUID userId, RoleName role) {
-        Set<String> currentRoles = keycloakAuthClient.getUserRealmRoles(userId);
+        Set<String> currentRoles = keycloakAuthClient.getUserCompositeRealmRoles(userId);
         if (currentRoles.contains(role.name())) {
             throw new InvalidStateException("User already has role: " + role.name());
         }
@@ -109,7 +109,7 @@ public class UserService {
     }
 
     public void removeRole(UUID userId, RoleName role) {
-        Set<String> currentRoles = keycloakAuthClient.getUserRealmRoles(userId);
+        Set<String> currentRoles = keycloakAuthClient.getUserCompositeRealmRoles(userId);
         if (!currentRoles.contains(role.name())) {
             throw new InvalidStateException("User does not have role: " + role.name());
         }

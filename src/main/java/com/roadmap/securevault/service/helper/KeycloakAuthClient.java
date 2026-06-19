@@ -34,6 +34,7 @@ public class KeycloakAuthClient {
 
     private static final String ADMIN_TOKEN_KEY = "keycloak:admin-token";
     private static final String USER_ROLES_KEY_PREFIX = "keycloak:user-roles:";
+    private static final String USER_COMPOSITE_ROLES_KEY_PREFIX = "keycloak:user-composite-roles:";
     private static final Duration ROLE_CACHE_TTL = Duration.ofMinutes(2);
 
     public List<KeycloakUserRepresentation> getAllUsers(KeycloakUserQuery query) {
@@ -95,6 +96,40 @@ public class KeycloakAuthClient {
         }
     }
 
+    public boolean userExistsByEmail(String email) {
+        String adminToken = getAdminAccessToken();
+
+        String uri = UriComponentsBuilder.fromUriString(keycloakProperties.adminUsersUri())
+                .queryParam("email", email)
+                .queryParam("exact", true)
+                .toUriString();
+
+        List<Map<String, Object>> users = restClient.get()
+                .uri(uri)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
+                .retrieve()
+                .body(List.class);
+
+        return users != null && !users.isEmpty();
+    }
+
+    public boolean userExistsByUsername(String username) {
+        String adminToken = getAdminAccessToken();
+
+        String uri = UriComponentsBuilder.fromUriString(keycloakProperties.adminUsersUri())
+                .queryParam("username", username)
+                .queryParam("exact", true)
+                .toUriString();
+
+        List<Map<String, Object>> users = restClient.get()
+                .uri(uri)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
+                .retrieve()
+                .body(List.class);
+
+        return users != null && !users.isEmpty();
+    }
+
     public Set<String> getUserRealmRoles(UUID userId) {
         String key = USER_ROLES_KEY_PREFIX + userId;
 
@@ -104,6 +139,20 @@ public class KeycloakAuthClient {
                         : Set.copyOf(Arrays.asList(cached.split(","))))
                 .orElseGet(() -> {
                     Set<String> roles = fetchUserRealmRolesFromKeycloak(userId);
+                    redisCacheService.put(key, String.join(",", roles), ROLE_CACHE_TTL);
+                    return roles;
+                });
+    }
+
+    public Set<String> getUserCompositeRealmRoles(UUID userId) {
+        String key = USER_COMPOSITE_ROLES_KEY_PREFIX + userId;
+
+        return redisCacheService.get(key)
+                .map(cached -> cached.isEmpty()
+                        ? Set.<String>of()
+                        : Set.copyOf(Arrays.asList(cached.split(","))))
+                .orElseGet(() -> {
+                    Set<String> roles = fetchUserCompositeRealmRolesFromKeycloak(userId);
                     redisCacheService.put(key, String.join(",", roles), ROLE_CACHE_TTL);
                     return roles;
                 });
@@ -329,6 +378,27 @@ public class KeycloakAuthClient {
         try {
             List<Map<String, Object>> roles = restClient.get()
                     .uri(keycloakProperties.userRealmRoleMappingsUri(userId.toString()))
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
+                    .retrieve()
+                    .body(List.class);
+
+            return roles.stream()
+                    .map(r -> (String) r.get("name"))
+                    .collect(Collectors.toSet());
+        } catch (RestClientResponseException e) {
+            if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
+                throw new EntityNotFoundException("User not found: " + userId);
+            }
+            throw e;
+        }
+    }
+
+    private Set<String> fetchUserCompositeRealmRolesFromKeycloak(UUID userId) {
+        String adminToken = getAdminAccessToken();
+
+        try {
+            List<Map<String, Object>> roles = restClient.get()
+                    .uri(keycloakProperties.userRealmCompositeRoleMappingsUri(userId.toString()))
                     .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
                     .retrieve()
                     .body(List.class);

@@ -3,6 +3,7 @@ package com.roadmap.securevault.service.web;
 import com.roadmap.securevault.config.KafkaTopics;
 import com.roadmap.securevault.dto.web.RegisterRequest;
 import com.roadmap.securevault.entity.User;
+import com.roadmap.securevault.exception.CredentialsTakenException;
 import com.roadmap.securevault.kafka.events.UserEvent;
 import com.roadmap.securevault.service.helper.KeycloakAuthClient;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,13 @@ public class AuthService {
     private final KafkaTemplate<String, UserEvent> kafkaTemplate;
 
     public void register(RegisterRequest credentials) {
+        if (keycloakAuthClient.userExistsByUsername(credentials.username())) {
+            throw new CredentialsTakenException("Username already exists");
+        }
+        if (keycloakAuthClient.userExistsByEmail(credentials.email())) {
+            throw new CredentialsTakenException("Email already exists");
+        }
+
         UUID userId = keycloakAuthClient.createUser(credentials);
 
         UserEvent event = new UserEvent(
