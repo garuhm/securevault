@@ -64,7 +64,21 @@ public class UserService {
 
     @Transactional
     public KeycloakUserRepresentation updateUser(UUID userId, UserUpdateRequest request) {
-        KeycloakUserRepresentation keycloakUser = keycloakAuthClient.getUserById(userId);
+        KeycloakUserRepresentation keycloakUser = keycloakAuthClient.updateUser(userId, request);
+
+        UserEvent event = new UserEvent(
+                userId,
+                request.username(),
+                request.email(),
+                UserEvent.UserEventType.UPDATED
+        );
+        kafkaTemplate.send(KafkaTopics.USER_EVENTS, event.id().toString(), event);
+        return keycloakUser;
+    }
+    
+    @Transactional
+    public KeycloakUserRepresentation partiallyUpdateUser(UUID userId, UserUpdateRequest request) {
+        KeycloakUserRepresentation keycloakUser = keycloakAuthClient.patchUser(userId, request);
 
         UserEvent event = new UserEvent(
                 userId,
@@ -80,15 +94,14 @@ public class UserService {
     public void deleteUser(UUID userId) {
         keycloakAuthClient.deleteUser(userId);
 
-        userRepository.findById(userId)
-                .ifPresent(_ -> {
-                    UserEvent event = new UserEvent(
-                            userId,
-                            null,
-                            null,
-                            UserEvent.UserEventType.DELETED
-                    );
-                    kafkaTemplate.send(KafkaTopics.USER_EVENTS, event.id().toString(), event);
-                });
+        if(userRepository.existsById(userId)) {
+            UserEvent event = new UserEvent(
+                    userId,
+                    null,
+                    null,
+                    UserEvent.UserEventType.DELETED
+            );
+            kafkaTemplate.send(KafkaTopics.USER_EVENTS, event.id().toString(), event);
+        }
     }
 }

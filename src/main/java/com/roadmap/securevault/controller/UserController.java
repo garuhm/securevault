@@ -35,7 +35,7 @@ public class UserController {
     public ResponseEntity<KeycloakUserRepresentation> patchUser(
             @PathVariable UUID userId,
             @RequestBody @Validated(UserUpdateRequest.Partial.class) UserUpdateRequest request) {
-        return ResponseEntity.ok(userService.updateUser(userId, request));
+        return ResponseEntity.ok(userService.partiallyUpdateUser(userId, request));
     }
 
     @DeleteMapping("/{userId}")
