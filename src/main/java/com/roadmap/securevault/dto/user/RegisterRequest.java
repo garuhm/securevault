@@ -1,4 +1,4 @@
-package com.roadmap.securevault.dto.web;
+package com.roadmap.securevault.dto.user;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

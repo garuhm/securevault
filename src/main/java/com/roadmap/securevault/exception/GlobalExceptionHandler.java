@@ -18,10 +18,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = {
             CredentialsTakenException.class,
             InvalidStateException.class,
-            OwnerDeletionException.class,
             InvalidRoleOperationException.class})
     public ResponseEntity<String> handleConflictException(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(value = {OwnerDeletionException.class})
+    public ResponseEntity<String> handleForbiddenException(RuntimeException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
     }
 
     @ExceptionHandler(value = {

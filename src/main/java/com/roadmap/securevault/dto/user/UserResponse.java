@@ -1,18 +1,14 @@
-package com.roadmap.securevault.kafka.events;
+package com.roadmap.securevault.dto.user;
 
 import com.roadmap.securevault.entity.enums.RoleName;
 
 import java.util.Set;
 import java.util.UUID;
 
-public record UserEvent(
+public record UserResponse(
         UUID id,
         String username,
         String email,
-        UserEventType type,
         Set<RoleName> roles
 ) {
-    public enum UserEventType {
-        CREATED, UPDATED, DELETED, ROLE_ADDED, ROLE_REMOVED
-    }
 }

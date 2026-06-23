@@ -2,9 +2,10 @@ package com.roadmap.securevault.controller;
 
 import com.roadmap.securevault.annotation.ApiVersion;
 import com.roadmap.securevault.dto.keycloak.KeycloakUserRepresentation;
-import com.roadmap.securevault.dto.web.UserFilter;
-import com.roadmap.securevault.dto.web.RoleUpdateRequest;
-import com.roadmap.securevault.dto.web.UserUpdateRequest;
+import com.roadmap.securevault.dto.user.RoleUpdateRequest;
+import com.roadmap.securevault.dto.user.UserFilter;
+import com.roadmap.securevault.dto.user.UserResponse;
+import com.roadmap.securevault.dto.user.UserUpdateRequest;
 import com.roadmap.securevault.service.web.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +28,7 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping
-    public ResponseEntity<Page<KeycloakUserRepresentation>> getUsers(
+    public ResponseEntity<Page<UserResponse>> getUsers(
             @ParameterObject UserFilter filter,
             @ParameterObject Pageable pageable) {
         return ResponseEntity.ok(userService.getUsers(pageable, filter));
@@ -39,8 +40,8 @@ public class UserController {
     }
 
     @PutMapping("/{userId}")
-    @PreAuthorize("@securityEvaluator.isSelf(authentication, #id) " +
-                   "or @securityEvaluator.isAbove(authentication, #id) ")
+    @PreAuthorize("@securityEvaluator.isSelf(authentication, #userId) " +
+                   "or @securityEvaluator.isAbove(authentication, #userId) ")
     public ResponseEntity<KeycloakUserRepresentation> updateUser(
             @PathVariable UUID userId,
             @RequestBody @Validated(UserUpdateRequest.Full.class) UserUpdateRequest request) {
@@ -48,8 +49,8 @@ public class UserController {
     }
 
     @PatchMapping("/{userId}")
-    @PreAuthorize("@securityEvaluator.isSelf(authentication, #id) " +
-                   "or @securityEvaluator.isAbove(authentication, #id) ")
+    @PreAuthorize("@securityEvaluator.isSelf(authentication, #userId) " +
+                   "or @securityEvaluator.isAbove(authentication, #userId) ")
     public ResponseEntity<KeycloakUserRepresentation> patchUser(
             @PathVariable UUID userId,
             @RequestBody @Validated(UserUpdateRequest.Partial.class) UserUpdateRequest request) {
@@ -61,7 +62,7 @@ public class UserController {
     public ResponseEntity<Void> patchUserRole(
             @PathVariable UUID userId,
             @RequestBody @Valid RoleUpdateRequest request) {
-        userService.addRole(userId, request.role());
+        userService.addRole(userId, request.roles());
         return ResponseEntity.noContent().build();
     }
 
@@ -70,13 +71,13 @@ public class UserController {
     public ResponseEntity<Void> deleteUserRole(
             @PathVariable UUID userId,
             @RequestBody @Valid RoleUpdateRequest request) {
-        userService.removeRole(userId, request.role());
+        userService.removeRole(userId, request.roles());
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{userId}")
-    @PreAuthorize("@securityEvaluator.isSelf(authentication, #id) " +
-                   "or @securityEvaluator.isAbove(authentication, #id) ")
+    @PreAuthorize("@securityEvaluator.isSelf(authentication, #userId) " +
+                   "or @securityEvaluator.isAbove(authentication, #userId) ")
     public ResponseEntity<Void> deleteUser(@PathVariable UUID userId) {
         userService.deleteUser(userId);
         return ResponseEntity.noContent().build();

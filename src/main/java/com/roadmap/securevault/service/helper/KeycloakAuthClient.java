@@ -1,10 +1,9 @@
 package com.roadmap.securevault.service.helper;
 
 import com.roadmap.securevault.config.properties.KeycloakProperties;
-import com.roadmap.securevault.dto.keycloak.KeycloakUserQuery;
 import com.roadmap.securevault.dto.keycloak.KeycloakUserRepresentation;
-import com.roadmap.securevault.dto.web.RegisterRequest;
-import com.roadmap.securevault.dto.web.UserUpdateRequest;
+import com.roadmap.securevault.dto.user.RegisterRequest;
+import com.roadmap.securevault.dto.user.UserUpdateRequest;
 import com.roadmap.securevault.entity.enums.RoleName;
 import com.roadmap.securevault.exception.CredentialsTakenException;
 import com.roadmap.securevault.exception.InvalidStateException;
@@ -22,6 +21,7 @@ import java.net.URI;
 import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @SuppressWarnings("unchecked")
 @Service
@@ -37,45 +37,6 @@ public class KeycloakAuthClient {
     private static final String USER_COMPOSITE_ROLES_KEY_PREFIX = "keycloak:user-composite-roles:";
     private static final Duration ROLE_CACHE_TTL = Duration.ofMinutes(2);
 
-    public List<KeycloakUserRepresentation> getAllUsers(KeycloakUserQuery query) {
-        String adminToken = getAdminAccessToken();
-
-        String uri = UriComponentsBuilder.fromUriString(keycloakProperties.adminUsersUri())
-                .queryParamIfPresent("first", Optional.ofNullable(query.first()))
-                .queryParamIfPresent("max", Optional.ofNullable(query.max()))
-                .queryParamIfPresent("username", Optional.ofNullable(query.username()))
-                .queryParamIfPresent("email", Optional.ofNullable(query.email()))
-                .queryParamIfPresent("enabled", Optional.ofNullable(query.enabled()))
-                .toUriString();
-
-        List<Map<String, Object>> users = restClient.get()
-                .uri(uri)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
-                .retrieve()
-                .body(List.class);
-
-        return users.stream()
-                .map(this::toUserRepresentation)
-                .toList();
-    }
-
-    public long getUserCount(KeycloakUserQuery query) {
-        String adminToken = getAdminAccessToken();
-
-        String uri = UriComponentsBuilder.fromUriString(keycloakProperties.adminUserCountUri())
-                .queryParamIfPresent("username", Optional.ofNullable(query.username()))
-                .queryParamIfPresent("email", Optional.ofNullable(query.email()))
-                .queryParamIfPresent("enabled", Optional.ofNullable(query.enabled()))
-                .toUriString();
-
-        Integer count = restClient.get()
-                .uri(uri)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
-                .retrieve()
-                .body(Integer.class);
-
-        return count;
-    }
 
     public KeycloakUserRepresentation getUserById(UUID userId) {
         String adminToken = getAdminAccessToken();
@@ -159,16 +120,22 @@ public class KeycloakAuthClient {
     }
 
     public void addRealmRole(UUID userId, RoleName role) {
+        addRealmRoles(userId, Set.of(role));
+    }
+
+    public void addRealmRoles(UUID userId, Set<RoleName> roles) {
         String adminToken = getAdminAccessToken();
 
-        RoleRepresentationDto roleRep = fetchRealmRole(adminToken, role);
+        List<RoleRepresentationDto> roleReps = roles.stream()
+                .map(role -> fetchRealmRole(adminToken, role))
+                .toList();
 
         try {
             restClient.post()
                     .uri(keycloakProperties.userRealmRoleMappingsUri(userId.toString()))
                     .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(List.of(roleRep))
+                    .body(roleReps)
                     .retrieve()
                     .toBodilessEntity();
         } catch (RestClientResponseException e) {
@@ -181,17 +148,19 @@ public class KeycloakAuthClient {
         invalidateUserRolesCache(userId);
     }
 
-    public void removeRealmRole(UUID userId, RoleName role) {
+    public void removeRealmRole(UUID userId, Set<RoleName> roles) {
         String adminToken = getAdminAccessToken();
 
-        RoleRepresentationDto roleRep = fetchRealmRole(adminToken, role);
+        List<RoleRepresentationDto> roleReps = roles.stream()
+                .map(role -> fetchRealmRole(adminToken, role))
+                .collect(Collectors.toList());
 
         try {
             restClient.method(HttpMethod.DELETE)
                     .uri(keycloakProperties.userRealmRoleMappingsUri(userId.toString()))
                     .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(List.of(roleRep))
+                    .body(roleReps)
                     .retrieve()
                     .toBodilessEntity();
         } catch (RestClientResponseException e) {
@@ -213,7 +182,7 @@ public class KeycloakAuthClient {
                 .anyMatch(role -> role == RoleName.ROLE_OWNER);
     }
 
-    public UUID createUser(RegisterRequest request) {
+    public UUID createUser(RegisterRequest request, RoleName role) {
         String adminToken = getAdminAccessToken();
 
         Map<String, Object> body = Map.of(
@@ -226,10 +195,10 @@ public class KeycloakAuthClient {
                         "type", "password",
                         "value", request.password(),
                         "temporary", false
-                )),
-                "realmRoles", List.of(RoleName.ROLE_USER.name())
+                ))
         );
 
+        UUID userId;
         try {
             ResponseEntity<Void> response = restClient.post()
                     .uri(keycloakProperties.adminUsersUri())
@@ -239,23 +208,31 @@ public class KeycloakAuthClient {
                     .retrieve()
                     .toBodilessEntity();
 
-            return extractIdFromLocation(response.getHeaders().getLocation());
+            userId = extractIdFromLocation(response.getHeaders().getLocation());
         } catch (RestClientResponseException e) {
             if (e.getStatusCode() == HttpStatus.CONFLICT) {
                 throw new CredentialsTakenException("Username or email already exists");
             }
             throw e;
         }
+        Set<RoleName> rolesToAdd = Stream.concat(
+                Stream.of(role),
+                RoleName.getRolesBelow(role).stream()
+        ).collect(Collectors.toSet());
+
+        addRealmRoles(userId, rolesToAdd);
+        return userId;
     }
 
     public KeycloakUserRepresentation updateUser(UUID userId, UserUpdateRequest request) {
         String adminToken = getAdminAccessToken();
 
         Map<String, Object> body = new HashMap<>();
+        body.put("id", userId.toString());
         body.put("username", request.username());
         body.put("email", request.email());
-        body.put("enabled", request.enabled() != null ? request.enabled() : true);
-        body.put("emailVerified", request.emailVerified() != null ? request.emailVerified() : false);
+        body.put("enabled", true);
+        body.put("emailVerified",true);
 
         putUserInternal(adminToken, userId, body);
         return toUserRepresentation(body);
@@ -268,8 +245,6 @@ public class KeycloakAuthClient {
 
         if (request.username() != null) existing.put("username", request.username());
         if (request.email() != null) existing.put("email", request.email());
-        if (request.enabled() != null) existing.put("enabled", request.enabled());
-        if (request.emailVerified() != null) existing.put("emailVerified", request.emailVerified());
 
         putUserInternal(adminToken, userId, existing);
         return toUserRepresentation(existing);
@@ -277,6 +252,8 @@ public class KeycloakAuthClient {
 
     public void deleteUser(UUID userId) {
         String adminToken = getAdminAccessToken();
+
+        logoutAllSessions(userId);
 
         try {
             restClient.delete()
@@ -428,7 +405,7 @@ public class KeycloakAuthClient {
             );
         } catch (RestClientResponseException e) {
             if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
-                throw new EntityNotFoundException("Realm role not found: " + role.name());
+                throw new EntityNotFoundException("Realm roles not found: " + role.name());
             }
             throw e;
         }

@@ -2,6 +2,7 @@ package com.roadmap.securevault.kafka;
 
 import com.roadmap.securevault.config.KafkaTopics;
 import com.roadmap.securevault.entity.User;
+import com.roadmap.securevault.entity.enums.RoleName;
 import com.roadmap.securevault.kafka.events.UserEvent;
 import com.roadmap.securevault.mapper.UserMapper;
 import com.roadmap.securevault.repo.UserRepository;
@@ -26,12 +27,27 @@ public class UserEventConsumer {
                             .id(event.id())
                             .username(event.username())
                             .email(event.email())
+                            .roles(event.roles())
                             .build()
             );
             case UPDATED -> {
                 User user = userRepository.findById(event.id())
                         .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + event.id()));
                 UserMapper.updateUser(user, event.username(), event.email());
+
+                userRepository.save(user);
+            }
+            case ROLE_ADDED -> {
+                User user = userRepository.findById(event.id())
+                        .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + event.id()));
+                user.setRoles(RoleName.combineRoles(user.getRoles(), event.roles()));
+
+                userRepository.save(user);
+            }
+            case ROLE_REMOVED -> {
+                User user = userRepository.findById(event.id())
+                        .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + event.id()));
+                user.getRoles().removeAll(event.roles());
 
                 userRepository.save(user);
             }

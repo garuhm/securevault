@@ -30,7 +30,7 @@ public abstract class AbstractTestContainersUtilizingTest {
     protected static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer(POSTGRES_IMAGE);
 
     @Container
-    protected static final KeycloakContainer KEYCLOAK = new KeycloakContainer()
+    protected static final KeycloakContainer KEYCLOAK = new KeycloakContainer("quay.io/keycloak/keycloak:26.3")
             .withRealmImportFile("app-realm-realm.json");
 
     @Container

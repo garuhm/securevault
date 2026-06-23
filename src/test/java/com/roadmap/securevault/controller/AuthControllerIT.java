@@ -1,6 +1,6 @@
 package com.roadmap.securevault.controller;
 
-import com.roadmap.securevault.dto.web.RegisterRequest;
+import com.roadmap.securevault.dto.user.RegisterRequest;
 import com.roadmap.securevault.repo.UserRepository;
 import com.roadmap.securevault.test_util.testcontainers.AbstractSpringBootTest;
 import org.awaitility.Awaitility;

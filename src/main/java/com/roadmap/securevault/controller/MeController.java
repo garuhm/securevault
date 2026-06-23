@@ -1,8 +1,8 @@
 package com.roadmap.securevault.controller;
 
 import com.roadmap.securevault.annotation.ApiVersion;
-import com.roadmap.securevault.dto.web.MeResponse;
-import com.roadmap.securevault.dto.web.MeRolesBelowResponse;
+import com.roadmap.securevault.dto.me.MeResponse;
+import com.roadmap.securevault.dto.me.MeRolesBelowResponse;
 import com.roadmap.securevault.service.web.MeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

@@ -1,4 +1,4 @@
-package com.roadmap.securevault.dto.web;
+package com.roadmap.securevault.dto.me;
 
 public record MeResponse(
         String username,

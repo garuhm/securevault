@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public enum RoleName {
     ROLE_OWNER,
@@ -17,7 +18,7 @@ public enum RoleName {
                 .orElse(ROLE_USER);
     }
 
-    public static int getRoleHiearchyPosition (RoleName roleName) {
+    public static int getRoleHierarchyPosition(RoleName roleName) {
         return roleName.ordinal();
     }
 
@@ -33,6 +34,19 @@ public enum RoleName {
         } catch (IllegalArgumentException e) {
             return null; // not one of our roles (e.g. offline_access, uma_authorization)
         }
+    }
+
+    public static boolean isRoleAbove (RoleName roleName, RoleName otherRole) {
+        return otherRole.ordinal() < roleName.ordinal();
+    }
+
+    public static boolean isRoleAbove (Set<RoleName> roleNames, RoleName otherRole) {
+        return roleNames.stream().anyMatch(r -> isRoleAbove(r, otherRole));
+    }
+
+    public static Set<RoleName> combineRoles(Set<RoleName> original, Set<RoleName> newRoles) {
+        return Stream.concat(original.stream(), newRoles.stream())
+                .collect(Collectors.toSet());
     }
 
     private static boolean isRoleBelow (RoleName roleName, RoleName otherRole) {

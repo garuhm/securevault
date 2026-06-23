@@ -1,7 +1,7 @@
 package com.roadmap.securevault.service.web;
 
-import com.roadmap.securevault.dto.web.MeResponse;
-import com.roadmap.securevault.dto.web.MeRolesBelowResponse;
+import com.roadmap.securevault.dto.me.MeResponse;
+import com.roadmap.securevault.dto.me.MeRolesBelowResponse;
 import com.roadmap.securevault.entity.User;
 import com.roadmap.securevault.entity.enums.RoleName;
 import com.roadmap.securevault.mapper.UserMapper;
@@ -22,6 +22,10 @@ public class MeService {
     }
 
     public MeRolesBelowResponse getRolesBelow() {
+        SecurityContextHolder.getContext().getAuthentication().getAuthorities()
+                .stream()
+                .map(org.springframework.security.core.GrantedAuthority::getAuthority);
+
         RoleName roleName = RoleName.getHighestRole(
                 SecurityContextHolder.getContext().getAuthentication().getAuthorities()
                         .stream()

@@ -37,7 +37,7 @@ public class SecurityEvaluator {
                 .map(GrantedAuthority::getAuthority)
                 .map(RoleName::tryParseRole)
                 .filter(java.util.Objects::nonNull)
-                .map(RoleName::getRoleHiearchyPosition)
+                .map(RoleName::getRoleHierarchyPosition)
                 .min(Integer::compareTo)
                 .orElse(Integer.MAX_VALUE);
 
@@ -48,9 +48,9 @@ public class SecurityEvaluator {
         int targetUserOrdinal = targetRoleNames.stream()
                 .map(RoleName::tryParseRole)
                 .filter(java.util.Objects::nonNull)
-                .map(RoleName::getRoleHiearchyPosition)
+                .map(RoleName::getRoleHierarchyPosition)
                 .min(Integer::compareTo)
-                .orElse(RoleName.getRoleHiearchyPosition(RoleName.ROLE_USER));
+                .orElse(RoleName.getRoleHierarchyPosition(RoleName.ROLE_USER));
 
         return callerOrdinal < targetUserOrdinal;
     }

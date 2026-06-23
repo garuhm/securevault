@@ -41,7 +41,6 @@ public record KeycloakProperties(
         return authServerUrl + "/admin/realms/" + realm + "/users/" + userId + "/role-mappings/realm/composite";
     }
 
-
     public String realmRoleByNameUri(String roleName) {
         return authServerUrl + "/admin/realms/" + realm + "/roles/" + roleName;
     }

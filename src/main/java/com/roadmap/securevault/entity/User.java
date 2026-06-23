@@ -1,11 +1,11 @@
 package com.roadmap.securevault.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.roadmap.securevault.entity.enums.RoleName;
+import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -22,4 +22,14 @@ public class User {
 
     @Column(unique = true, nullable = false)
     private String email;
+
+    @Builder.Default
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(
+        name = "user_roles",
+        joinColumns = @JoinColumn(name = "user_id")
+    )
+    @Enumerated(EnumType.STRING)
+    @Column(name = "roles")
+    private Set<RoleName> roles = new HashSet<>();
 }

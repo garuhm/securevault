@@ -1,6 +1,7 @@
 {
   "id" : "bd4b5496-47fe-4bd8-8908-f88d115f6c48",
   "realm" : "app-realm",
+  "loginTheme":  "auth",
   "notBefore" : 0,
   "defaultSignatureAlgorithm" : "RS256",
   "revokeRefreshToken" : true,
@@ -8,7 +9,7 @@
   "accessTokenLifespan" : 900,
   "accessTokenLifespanForImplicitFlow" : 900,
   "ssoSessionIdleTimeout" : 1800,
-  "ssoSessionMaxLifespan" : 36000,
+  "ssoSessionMaxLifespan" : 259200,
   "ssoSessionIdleTimeoutRememberMe" : 0,
   "ssoSessionMaxLifespanRememberMe" : 0,
   "offlineSessionIdleTimeout" : 2592000,
@@ -64,7 +65,10 @@
       "id" : "22ca6af7-f393-43f4-8652-40e9d638733f",
       "name" : "ROLE_OWNER",
       "description" : "",
-      "composite" : false,
+      "composite" : true,
+      "composites" : {
+        "realm" : [ "ROLE_USER", "ROLE_ADMIN" ]
+      },
       "clientRole" : false,
       "containerId" : "bd4b5496-47fe-4bd8-8908-f88d115f6c48",
       "attributes" : { }
@@ -88,7 +92,10 @@
       "id" : "ee115d3a-4f37-4909-8ad5-402283cee521",
       "name" : "ROLE_ADMIN",
       "description" : "",
-      "composite" : false,
+      "composite" : true,
+      "composites" : {
+        "realm" : [ "ROLE_USER" ]
+      },
       "clientRole" : false,
       "containerId" : "bd4b5496-47fe-4bd8-8908-f88d115f6c48",
       "attributes" : { }
@@ -411,6 +418,27 @@
   "webAuthnPolicyPasswordlessAcceptableAaguids" : [ ],
   "webAuthnPolicyPasswordlessExtraOrigins" : [ ],
   "users" : [ {
+    "id" : "6864126f-8c50-4b96-8de8-88afe527a6f9",
+    "username" : "app_owner",
+    "email" : "owner@app.local",
+    "emailVerified" : true,
+    "createdTimestamp" : 1781893812265,
+    "enabled" : true,
+    "totp" : false,
+    "credentials" : [ {
+      "id" : "6221e020-d737-4197-b0e3-8a567155bbb5",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1781893837496,
+      "secretData" : "{\"value\":\"PKp/1cLLOIeVZ3aEnskBWQ/dJMCl9eT4uvnFIzSYoYQ=\",\"salt\":\"IBZ1dt9Gb4nT6YP5zUDf5w==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":5,\"algorithm\":\"argon2\",\"additionalParameters\":{\"hashLength\":[\"32\"],\"memory\":[\"7168\"],\"type\":[\"id\"],\"version\":[\"1.3\"],\"parallelism\":[\"1\"]}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "default-roles-app-realm", "ROLE_OWNER", "ROLE_ADMIN", "ROLE_USER" ],
+    "notBefore" : 0,
+    "groups" : [ ]
+  }, {
     "id" : "ecb98de6-62c7-48dd-b259-bcff51a922fc",
     "username" : "service-account-account",
     "emailVerified" : false,
@@ -435,7 +463,7 @@
     "disableableCredentialTypes" : [ ],
     "requiredActions" : [ ],
     "clientRoles" : {
-      "realm-management" : [ "view-users", "manage-users", "query-users" ]
+      "realm-management" : [ "view-users", "manage-users", "query-users", "view-realm", "manage-realm" ]
     },
     "notBefore" : 0,
     "groups" : [ ]
@@ -834,7 +862,7 @@
     "authenticationFlowBindingOverrides" : { },
     "fullScopeAllowed" : true,
     "nodeReRegistrationTimeout" : -1,
-    "defaultClientScopes" : [ "web-origins", "acr", "profile", "roles", "basic", "email", "introspection-audience" ],
+    "defaultClientScopes" : [ "web-origins", "acr", "introspection-audience", "profile", "roles", "basic", "email" ],
     "optionalClientScopes" : [ "address", "phone", "organization", "offline_access", "microprofile-jwt" ]
   }, {
     "clientId": "test-client",
@@ -861,7 +889,7 @@
     "nodeReRegistrationTimeout": 0,
     "defaultClientScopes": ["web-origins", "acr", "profile", "roles", "basic", "email", "introspection-audience" ],
     "optionalClientScopes": ["address", "phone", "organization", "offline_access", "microprofile-jwt"]
-  }],
+  }   ],
   "clientScopes" : [ {
     "id" : "aaf3594d-4d99-49cb-a701-8ebfe2f7fbac",
     "name" : "role_list",
@@ -975,30 +1003,6 @@
       }
     } ]
   }, {
-    "id": "8f3a1c2e-1234-4abc-9def-0123456789ab",
-    "name": "introspection-audience",
-    "description": "Adds backend-client to the token audience so it can introspect tokens",
-    "protocol": "openid-connect",
-    "attributes": {
-      "include.in.token.scope": "false",
-      "display.on.consent.screen": "false"
-    },
-    "protocolMappers": [
-      {
-        "id": "1a2b3c4d-5678-4efa-9012-3456789abcde",
-        "name": "backend-client audience",
-        "protocol": "openid-connect",
-        "protocolMapper": "oidc-audience-mapper",
-        "consentRequired": false,
-        "config": {
-          "included.client.audience": "backend-client",
-          "id.token.claim": "false",
-          "access.token.claim": "true",
-          "introspection.token.claim": "true"
-        }
-      }
-    ]
-  },{
     "id" : "60e548a0-a09b-4950-b76b-d6ed2ae64fd0",
     "name" : "basic",
     "description" : "OpenID Connect scope for add all basic claims to the token",
@@ -1375,6 +1379,29 @@
       }
     } ]
   }, {
+    "id" : "8f3a1c2e-1234-4abc-9def-0123456789ab",
+    "name" : "introspection-audience",
+    "description" : "Adds backend-client to the token audience so it can introspect tokens",
+    "protocol" : "openid-connect",
+    "attributes" : {
+      "include.in.token.scope" : "false",
+      "display.on.consent.screen" : "false"
+    },
+    "protocolMappers" : [ {
+      "id" : "1a2b3c4d-5678-4efa-9012-3456789abcde",
+      "name" : "backend-client audience",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-audience-mapper",
+      "consentRequired" : false,
+      "config" : {
+        "included.client.audience" : "backend-client",
+        "id.token.claim" : "false",
+        "access.token.claim" : "true",
+        "introspection.token.claim" : "true",
+        "userinfo.token.claim" : "false"
+      }
+    } ]
+  }, {
     "id" : "f3f473dd-58d1-4d5b-80a1-2c716b2cf473",
     "name" : "acr",
     "description" : "OpenID Connect scope for add acr (authentication context class reference) to the token",
@@ -1501,7 +1528,7 @@
       "subType" : "anonymous",
       "subComponents" : { },
       "config" : {
-        "allowed-protocol-mapper-types" : [ "oidc-sha256-pairwise-sub-mapper", "saml-role-list-mapper", "saml-user-attribute-mapper", "oidc-usermodel-property-mapper", "oidc-address-mapper", "oidc-usermodel-attribute-mapper", "saml-user-property-mapper", "oidc-full-name-mapper" ]
+        "allowed-protocol-mapper-types" : [ "saml-role-list-mapper", "saml-user-attribute-mapper", "oidc-usermodel-property-mapper", "oidc-usermodel-attribute-mapper", "oidc-sha256-pairwise-sub-mapper", "saml-user-property-mapper", "oidc-full-name-mapper", "oidc-address-mapper" ]
       }
     }, {
       "id" : "4cda5aa6-6fc8-4cf1-a3b9-b95372a569b0",
@@ -1544,7 +1571,7 @@
       "subType" : "authenticated",
       "subComponents" : { },
       "config" : {
-        "allowed-protocol-mapper-types" : [ "oidc-address-mapper", "saml-role-list-mapper", "oidc-usermodel-attribute-mapper", "oidc-sha256-pairwise-sub-mapper", "saml-user-attribute-mapper", "oidc-usermodel-property-mapper", "oidc-full-name-mapper", "saml-user-property-mapper" ]
+        "allowed-protocol-mapper-types" : [ "saml-user-property-mapper", "oidc-address-mapper", "oidc-sha256-pairwise-sub-mapper", "oidc-usermodel-attribute-mapper", "saml-user-attribute-mapper", "oidc-full-name-mapper", "oidc-usermodel-property-mapper", "saml-role-list-mapper" ]
       }
     } ],
     "org.keycloak.userprofile.UserProfileProvider" : [ {
