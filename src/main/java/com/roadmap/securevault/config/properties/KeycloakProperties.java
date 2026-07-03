@@ -44,4 +44,8 @@ public record KeycloakProperties(
     public String realmRoleByNameUri(String roleName) {
         return authServerUrl + "/admin/realms/" + realm + "/roles/" + roleName;
     }
+
+    public String idpLinkActionUri() {
+        return authServerUrl + "/realms/" + realm + "/protocol/openid-connect/auth";
+    }
 }

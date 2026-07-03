@@ -54,4 +54,10 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
     }
+
+    // bad request invalid oauth2 provider
+    @ExceptionHandler(value = {InvalidOAuth2ProviderException.class})
+    public ResponseEntity<String> handleBadRequestException(RuntimeException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
 }

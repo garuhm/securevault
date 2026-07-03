@@ -135,4 +135,51 @@ class AuthControllerIT extends AbstractSpringBootTest {
                     .andExpect(status().isUnauthorized());
         }
     }
+
+    @Nested
+    @DisplayName("OAuth2 link tests")
+    class OAuth2Link {
+        @Test
+        @DisplayName("Link without auth; 401 status code")
+        void linkRequiresAuth() throws Exception {
+            mockMvc.perform(post("/auth/link/google"))
+                    .andExpect(status().isUnauthorized());
+        }
+
+        @Test
+        @DisplayName("Link with invalid provider; 400 status code")
+        void linkWithInvalidProvider() throws Exception {
+            RegisterRequest register = uniqueRegisterRequest("linkuser");
+
+            mockMvc.perform(
+                            post("/auth/register")
+                                    .contentType("application/json")
+                                    .content(objectMapper.writeValueAsString(register)))
+                    .andExpect(status().isCreated());
+
+            String accessToken = obtainAccessToken(register.username(), register.password());
+            mockMvc.perform(
+                    post("/auth/link/invalidprovider")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("Link with valid provider; 302 status code")
+        void linkWithValidProvider() throws Exception {
+            RegisterRequest register = uniqueRegisterRequest("linkuser");
+
+            mockMvc.perform(
+                            post("/auth/register")
+                                    .contentType("application/json")
+                                    .content(objectMapper.writeValueAsString(register)))
+                    .andExpect(status().isCreated());
+
+            String accessToken = obtainAccessToken(register.username(), register.password());
+            mockMvc.perform(
+                    post("/auth/link/google")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
+                    .andExpect(status().isFound());
+        }
+    }
 }
