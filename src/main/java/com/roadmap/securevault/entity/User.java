@@ -30,6 +30,6 @@ public class User {
         joinColumns = @JoinColumn(name = "user_id")
     )
     @Enumerated(EnumType.STRING)
-    @Column(name = "roles")
+    @Column(name = "role_name")
     private Set<RoleName> roles = new HashSet<>();
 }
